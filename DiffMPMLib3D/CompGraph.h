@@ -32,7 +32,8 @@ public:
 
 
 	void ComputeForwardPass(size_t start_layer);
-	void ComputeBackwardPass();
+	void ComputeBackwardPass(size_t control_layer);
+
 
 	std::vector<CompGraphLayer> layers;
 	

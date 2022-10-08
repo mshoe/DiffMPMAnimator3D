@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CompGraph.h"
 #include "ForwardSimulation.h"
+#include "BackPropagation.h"
 #include "Interpolation.h"
 
 void CompGraph::ComputeForwardPass(size_t start_layer)
@@ -12,6 +13,17 @@ void CompGraph::ComputeForwardPass(size_t start_layer)
 			*layers[i].point_cloud,
 			*layers[i].grid,
 			dt, drag, f_ext);
+	}
+}
+
+void CompGraph::ComputeBackwardPass(size_t control_layer)
+{
+	for (int i = (int)layers.size() - 2; i >= (int)control_layer; i--)
+	{
+		layers[i].grid->ResetGradients();
+		layers[i].point_cloud->ResetGradients();
+
+		Back_Timestep(layers[i + 1], layers[i], drag, dt);
 	}
 }
 
@@ -83,6 +95,7 @@ void CompGraph::OptimizeDefGradControlSequence(
 		// dLdx per particle
 		for (size_t p = 0; p < point_cloud.points.size(); p++) {
 			MaterialPoint& mp = point_cloud.points[p];
+			mp.dLdx.setZero();
 
 			auto nodes = grid.QueryPoint_CubicBSpline(mp.x);
 
@@ -116,4 +129,46 @@ void CompGraph::OptimizeDefGradControlSequence(
 	ComputeForwardPass(0);
 	double initial_loss = MassLoss();
 	std::cout << "initial loss = " << initial_loss << std::endl;
+	ComputeBackwardPass(0);
+	double initial_norm = layers.front().point_cloud->Compute_dLdF_Norm();
+	std::cout << "initial norm = " << initial_norm << std::endl;
+
+//#define FD 1
+#ifdef FD
+	/*******FINITE DIFFERENCES TEST********/
+
+	MaterialPoint& mp = layers.front().point_cloud->points[0];
+
+	std::cout << "analytic dLdF for particle 0:\n" << mp.dLdF << std::endl;
+
+
+	Mat3 fd_dLdF;
+	double delta = 1e-6;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			//MPMForwardSimulation(stcg, f_ext, drag, dt, control_timestep, false);
+			double originalValue = mp.F(i, j);
+
+			mp.F(i, j) = originalValue + delta;
+			ComputeForwardPass(0);
+			double l1 = MassLoss();
+
+			mp.F(i, j) = originalValue - delta;
+			ComputeForwardPass(0);
+			double l2 = MassLoss();
+
+			fd_dLdF(i, j) = (l1 - l2) / (2.0 * delta);
+			mp.F(i, j) = originalValue;
+		}
+	}
+	std::cout << "finite differences dLdF for particle 0:\n" << fd_dLdF << std::endl;
+
+	double grad_diff = (fd_dLdF - mp.dLdF).norm();
+	std::cout << "gradient difference = " << grad_diff << std::endl;
+
+	double grad_diff_percent = 100.0 * grad_diff / fd_dLdF.norm();
+	std::cout << "gradient difference percentage = " << grad_diff_percent << std::endl;
+#else
+
+#endif
 }

@@ -4,6 +4,8 @@
 
 struct MaterialPoint 
 {
+	void ResetGradients();
+
 	// stores every intermediate value in computation graph
 	Vec3 x = Vec3::Zero();
 	Vec3 v = Vec3::Zero();
@@ -17,8 +19,13 @@ struct MaterialPoint
 	double lam = 0.0;
 	double mu = 0.0;
 
+	// control variable
+	Mat3 dFc = Mat3::Zero(); // How much to change deformation gradient in this timestep
 
-	// derivatives
+
+
+
+	// gradients
 	Vec3 dLdx = Vec3::Zero();
 	Vec3 dLdv = Vec3::Zero();
 	Mat3 dLdF = Mat3::Zero();

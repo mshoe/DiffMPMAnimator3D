@@ -51,6 +51,7 @@ bool LoadScene(
 bool LoadCompGraph(
 	const SceneInput& scene_input,
 	std::shared_ptr<CompGraph>& comp_graph,
-	polyscope::PointCloud** polyscope_point_cloud,
+	polyscope::PointCloud** polyscope_input_point_cloud,
+	polyscope::PointCloud** polyscope_target_point_cloud,
 	polyscope::PointCloud** polyscope_grid
 );

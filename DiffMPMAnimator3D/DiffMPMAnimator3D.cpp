@@ -147,18 +147,23 @@ void realtimeCallback()
 
 
 // FOR OPTIMIZATION
+polyscope::PointCloud* ps_target_point_cloud = nullptr;
 std::shared_ptr<CompGraph> comp_graph = nullptr;
 
 void optimizationCallback()
 {
     ImGui::PushItemWidth(100);
 
+
+    static int num_timesteps = 60;
+    ImGui::InputInt("number of timesteps", &num_timesteps);
+
     if (ImGui::Button("Optimize Control Sequence"))
     {
-        LoadCompGraph(scene_input, comp_graph, &ps_point_cloud, &ps_grid);
+        LoadCompGraph(scene_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
 
         comp_graph->OptimizeDefGradControlSequence(
-            60,
+            num_timesteps,
             scene_input.dt,
             scene_input.drag,
             scene_input.f_ext,

@@ -83,5 +83,11 @@
     <ClCompile Include="BackPropagation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MaterialPoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GridNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -16,6 +16,7 @@ struct Grid
 
 	std::vector<Vec3> GetNodePositions() const;
 
+	void ResetGradients();
 
 	int dim_x;
 	int dim_y;

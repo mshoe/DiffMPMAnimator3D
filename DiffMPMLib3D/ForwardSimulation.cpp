@@ -10,7 +10,7 @@ void ForwardTimeStep(PointCloud& next_point_cloud, PointCloud& curr_point_cloud,
 	P2G(curr_point_cloud, grid, dt, drag);
 	G_op(grid, dt, f_ext);
 	G2P(next_point_cloud, curr_point_cloud, grid);
-	P_op_2(next_point_cloud, dt);
+	P_op_2(next_point_cloud, curr_point_cloud, dt);
 }
 
 void P_op_1(PointCloud& curr_point_cloud)
@@ -18,7 +18,7 @@ void P_op_1(PointCloud& curr_point_cloud)
 	for (size_t p = 0; p < curr_point_cloud.points.size(); p++) {
 		MaterialPoint& mp = curr_point_cloud.points[p];
 
-		mp.P = PK_FixedCorotatedElasticity(mp.F /*+ mp.dFc*/, mp.lam, mp.mu);
+		mp.P = PK_FixedCorotatedElasticity(mp.F + mp.dFc, mp.lam, mp.mu);
 	}
 }
 
@@ -53,7 +53,7 @@ void P2G(const PointCloud& curr_point_cloud, Grid& grid, double dt, double drag)
 
 			// MLS-MPM APIC
 			node.m += wgp * mp.m;
-			node.p += wgp * (mp.m * mp.v * (1.0 - dt * drag) + (-3.0 / (dx * dx) * dt * mp.vol * mp.P * (mp.F /*+ mp.dFc*/).transpose() + mp.m * mp.C) * dgp);
+			node.p += wgp * (mp.m * mp.v * (1.0 - dt * drag) + (-3.0 / (dx * dx) * dt * mp.vol * mp.P * (mp.F + mp.dFc).transpose() + mp.m * mp.C) * dgp);
 
 			if (false/*isnan(node.p[0]) || isnan(node.p[1]) || isnan(node.p[2])*/) {
 				//std::cout << "nan found" << std::endl;
@@ -97,7 +97,7 @@ void G2P(PointCloud& next_point_cloud, const PointCloud& curr_point_cloud, Grid&
 		const MaterialPoint& curr_mp = curr_point_cloud.points[p];
 		MaterialPoint& next_mp = next_point_cloud.points[p];
 
-		next_mp = curr_mp;
+		//next_mp = curr_mp;
 		next_mp.v.setZero();
 		next_mp.C.setZero();
 		
@@ -112,10 +112,6 @@ void G2P(PointCloud& next_point_cloud, const PointCloud& curr_point_cloud, Grid&
 			Vec3 dgp = xg - xp;
 			double wgp = CubicBSpline(dgp[0] / dx) * CubicBSpline(dgp[1] / dx) * CubicBSpline(dgp[2] / dx);
 
-			// PIC
-			// next_mp.v += wgp * node.v;
-			// velocity gradient too
-
 			// APIC
 			next_mp.v += wgp * node.v;
 			next_mp.C += 3.0 / (dx * dx) * wgp * node.v * dgp.transpose();
@@ -123,13 +119,14 @@ void G2P(PointCloud& next_point_cloud, const PointCloud& curr_point_cloud, Grid&
 	}
 }
 
-void P_op_2(PointCloud& next_point_cloud, double dt)
+void P_op_2(PointCloud& next_point_cloud, const PointCloud& curr_point_cloud, double dt)
 {
 	for (size_t p = 0; p < next_point_cloud.points.size(); p++) {
-		MaterialPoint& mp = next_point_cloud.points[p];
+		const MaterialPoint& curr_mp = curr_point_cloud.points[p];
+		MaterialPoint& next_mp = next_point_cloud.points[p];
 
-		mp.F = (Mat3::Identity() + dt * mp.C) * mp.F;
-		mp.x = mp.x + dt * mp.v;
+		next_mp.F = (Mat3::Identity() + dt * next_mp.C) * (curr_mp.F + curr_mp.dFc);
+		next_mp.x = curr_mp.x + dt * next_mp.v;
 	}
 }
 

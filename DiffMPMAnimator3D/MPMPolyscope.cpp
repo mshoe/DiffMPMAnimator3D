@@ -37,12 +37,14 @@ bool LoadMPMPointCloudFromObj(
     mpm_point_cloud->points.resize(points.size());
     for (size_t i = 0; i < points.size(); i++) {
         mpm_point_cloud->points[i].x = points[i];
-        mpm_point_cloud->points[i].v = Vec3(0.0, 0.0, -5.0);
+        mpm_point_cloud->points[i].v = Vec3(0.0, 0.0, 0.0);
         mpm_point_cloud->points[i].F = Mat3::Identity();
         mpm_point_cloud->points[i].m = point_dx * point_dx * point_dx * density;
         mpm_point_cloud->points[i].lam = lam;
         mpm_point_cloud->points[i].mu = mu;
     }
+
+    return true;
 }
 
 bool LoadScene(const SceneInput& scene_input,
@@ -88,7 +90,8 @@ bool LoadScene(const SceneInput& scene_input,
 bool LoadCompGraph(
     const SceneInput& scene_input,
     std::shared_ptr<CompGraph>& comp_graph,
-    polyscope::PointCloud** polyscope_point_cloud,
+    polyscope::PointCloud** polyscope_input_point_cloud,
+    polyscope::PointCloud** polyscope_target_point_cloud,
     polyscope::PointCloud** polyscope_grid
 )
 {
@@ -97,7 +100,7 @@ bool LoadCompGraph(
 
 
     // Load simulation scene
-    if (!LoadScene(scene_input, initial_point_cloud, grid, polyscope_point_cloud, polyscope_grid))
+    if (!LoadScene(scene_input, initial_point_cloud, grid, polyscope_input_point_cloud, polyscope_grid))
         return false;
 
     
@@ -113,9 +116,9 @@ bool LoadCompGraph(
     // Polyscope point cloud
     std::cout << "registering point cloud..." << std::endl;
     auto points = target_point_cloud->GetPointPositions();
-    *polyscope_point_cloud = polyscope::registerPointCloud(scene_input.mpm_target_mesh_path, points);
-    (*polyscope_point_cloud)->setPointRadius(point_dx / 50.0); // Not sure how this radius is actually calculated, this is hand tuned
-    (*polyscope_point_cloud)->setPointRenderMode(polyscope::PointRenderMode::Sphere);
+    *polyscope_target_point_cloud = polyscope::registerPointCloud(scene_input.mpm_target_mesh_path, points);
+    (*polyscope_target_point_cloud)->setPointRadius(point_dx / 50.0); // Not sure how this radius is actually calculated, this is hand tuned
+    (*polyscope_target_point_cloud)->setPointRenderMode(polyscope::PointRenderMode::Sphere);
 
     // Then turn it into a target grid
     auto target_grid = std::make_shared<Grid>(*grid);

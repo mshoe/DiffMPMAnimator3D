@@ -14,6 +14,6 @@ void G_op(Grid& grid, double dt, Vec3 f_ext);
 
 void G2P(PointCloud& next_point_cloud, const PointCloud& curr_point_cloud, Grid& grid);
 
-void P_op_2(PointCloud& next_point_cloud, double dt);
+void P_op_2(PointCloud& next_point_cloud, const PointCloud& curr_point_cloud, double dt);
 
 void CalculatePointCloudVolumes(PointCloud& curr_point_cloud, Grid& grid);

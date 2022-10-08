@@ -69,3 +69,14 @@ std::vector<Vec3> Grid::GetNodePositions() const
 	}
 	return ret;
 }
+
+void Grid::ResetGradients()
+{
+	for (int i = 0; i < dim_x; i++) {
+		for (int j = 0; j < dim_y; j++) {
+			for (int k = 0; k < dim_z; k++) {
+				nodes[i][j][k].ResetGradients();
+			}
+		}
+	}
+}
