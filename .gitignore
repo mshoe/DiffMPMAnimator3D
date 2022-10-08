@@ -44,3 +44,9 @@ compile_commands.json
 *.exe
 *.out
 *.app
+/DiffMPMAnimator3D/x64
+/DiffMPMLib3D/x64
+
+# output
+*.png
+*.mp4
