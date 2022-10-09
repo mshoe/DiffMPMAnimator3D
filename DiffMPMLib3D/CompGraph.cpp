@@ -53,6 +53,7 @@ void CompGraph::OptimizeDefGradControlSequence(
 	double gd_tol // tolerance factor used for determining when gradient descent has converged
 )
 {
+	std::streamsize prev_precision = std::cout.precision(16);
 	dt = _dt;
 	drag = _drag;
 	f_ext = _f_ext;
@@ -61,8 +62,8 @@ void CompGraph::OptimizeDefGradControlSequence(
 	// Initialize the computation graph
 	layers.resize(num_steps);
 	for (size_t i = 1; i < num_steps; i++) {
-		layers[i].point_cloud = std::make_shared<PointCloud>(*layers[i - 1].point_cloud);
-		layers[i].grid = std::make_shared<Grid>(*layers[i - 1].grid);
+		layers[i].point_cloud = std::make_shared<PointCloud>(*layers.front().point_cloud);
+		layers[i].grid = std::make_shared<Grid>(*layers.front().grid);
 	}
 
 	auto MassLoss = [this]
@@ -132,6 +133,8 @@ void CompGraph::OptimizeDefGradControlSequence(
 	ComputeBackwardPass(0);
 	double initial_norm = layers.front().point_cloud->Compute_dLdF_Norm();
 	std::cout << "initial norm = " << initial_norm << std::endl;
+	double convergence_norm = gd_tol * initial_norm; // if norm is less than this, we say the timestep has converged
+	std::cout << "convergence norm = " << convergence_norm << std::endl;
 
 //#define FD 1
 #ifdef FD
@@ -170,5 +173,80 @@ void CompGraph::OptimizeDefGradControlSequence(
 	std::cout << "gradient difference percentage = " << grad_diff_percent << std::endl;
 #else
 
+
+	for (int control_timestep = 0; control_timestep < (int)layers.size() - 1; control_timestep += control_stride)
+	{
+		std::cout << "Optimizing for timestep: " << control_timestep << std::endl;
+
+		double alpha = initial_alpha;
+		for (int gd_iter = 0; gd_iter < max_gd_iters; gd_iter++)
+		{
+			std::cout << "gradient descent iteration = " << gd_iter << std::endl;
+
+			// 1. compute forward pass from the control timestep
+			ComputeForwardPass(control_timestep);
+
+			// 2. get the current loss and final layer loss gradients
+			double gd_loss = MassLoss();
+			std::cout << "gd loss = " << gd_loss << std::endl;
+
+			// 3. propagate loss gradients to control timestep
+			ComputeBackwardPass(control_timestep);
+
+			// 4. get the gradient norm
+			double gradient_norm = layers.front().point_cloud->Compute_dLdF_Norm();
+
+			// TODO: check for NaN dLdF
+
+			// 5. Check if we have converged
+			if (gradient_norm < gd_tol * initial_norm) {
+				std::cout << "gradient norm = " << gradient_norm << " < " << convergence_norm << std::endl;
+				std::cout << "control timestep " << control_timestep << " converged. Exiting gradient descent and moving to next control timestep." << std::endl;
+				break;
+			}
+
+			// 6. Line search to determine a step size where the loss function decreases
+			double ls_loss = gd_loss;
+			bool ls_loss_decrease_found = false;
+			for (int ls_iter = 0; ls_iter < max_line_search_iters; ls_iter++) 
+			{
+
+				layers[control_timestep].point_cloud->Descend_dLdF(alpha, gradient_norm);
+
+				ComputeForwardPass(control_timestep);
+				ls_loss = MassLoss();
+
+				if (ls_loss < gd_loss) 
+				{
+					ls_loss_decrease_found = true;
+					std::cout << "line search decrease found at ls_iter = " << ls_iter << ", loss = " << ls_loss << std::endl;
+					break;
+				}
+
+				layers[control_timestep].point_cloud->Descend_dLdF(-alpha, gradient_norm);
+
+				alpha /= 2.0;
+			}
+
+
+			if (!ls_loss_decrease_found) {
+				std::cout << "Line search unable to find a decrease in timestep (" << control_timestep << 
+					"), gd iteration (" << gd_iter << ")" << std::endl;
+				std::cout << "Exiting gradient descent and moving to next control timestep." << std::endl;
+				break;
+			}
+		}
+	}
+
+	double final_loss = MassLoss();
+	std::cout << "Initial loss = " << initial_loss << std::endl;
+	std::cout << "Final loss = " << final_loss << std::endl;
+
+	if (final_loss >= initial_loss) {
+		std::cout << "Unable to find a loss decrease." << std::endl;
+	}
+
+	std::cout << "Deformation gradient control sequence optimization finished." << std::endl;
 #endif
+	std::cout.precision(prev_precision);
 }

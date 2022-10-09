@@ -156,12 +156,40 @@ void optimizationCallback()
 
 
     static int num_timesteps = 60;
+    static int control_stride = 10;
+    static int max_gd_iters = 25;
+    static int max_ls_iters = 15;
+    static double initial_alpha = 0.05;
+    static double gd_tol = 1e-3;
     ImGui::InputInt("number of timesteps", &num_timesteps);
+    ImGui::InputInt("control stride", &control_stride);
+    ImGui::InputInt("max gradient descent iterations", &max_gd_iters);
+
+    if (ImGui::Button("Load computation graph"))
+    {
+        LoadCompGraph(scene_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
+    }
 
     if (ImGui::Button("Optimize Control Sequence"))
     {
-        LoadCompGraph(scene_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
+        comp_graph->OptimizeDefGradControlSequence(
+            num_timesteps,
+            scene_input.dt,
+            scene_input.drag,
+            scene_input.f_ext,
+            control_stride,
+            max_gd_iters,
+            max_ls_iters,
+            initial_alpha,
+            gd_tol
+        );
+    }
 
+    if (ImGui::Button("Optimize Control Sequence using latest point cloud"))
+    {
+        comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
+        comp_graph->layers.resize(1);
+        
         comp_graph->OptimizeDefGradControlSequence(
             num_timesteps,
             scene_input.dt,

@@ -18,6 +18,15 @@ double PointCloud::Compute_dLdF_Norm()
 	return norm;
 }
 
+void PointCloud::Descend_dLdF(double alpha, double gradient_norm)
+{
+	for (MaterialPoint& mp : points) 
+	{
+		Mat3 dir = mp.dLdF / gradient_norm;
+		mp.dFc -= alpha * dir;
+	}
+}
+
 std::vector<Vec3> PointCloud::GetPointPositions() const
 {
 	std::vector<Vec3> ret;
