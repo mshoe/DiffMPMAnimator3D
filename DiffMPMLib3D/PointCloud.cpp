@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "PointCloud.h"
+#include <fstream>
 
 void PointCloud::ResetGradients()
 {
@@ -25,6 +26,19 @@ void PointCloud::Descend_dLdF(double alpha, double gradient_norm)
 		Mat3 dir = mp.dLdF / gradient_norm;
 		mp.dFc -= alpha * dir;
 	}
+}
+
+void PointCloud::WriteToOBJ(std::string obj_path)
+{
+	std::ofstream ofs;
+	ofs.open(obj_path);
+
+	if (ofs.good()) {
+		for (size_t v = 0; v < points.size(); v++) {
+			ofs << "v " << points[v].x[0] << " " << points[v].x[1] << " " << points[v].x[2] << "\n";
+		}
+	}
+	ofs.close();
 }
 
 std::vector<Vec3> PointCloud::GetPointPositions() const

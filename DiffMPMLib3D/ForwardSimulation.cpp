@@ -64,13 +64,7 @@ void P2G(const PointCloud& curr_point_cloud, Grid& grid, double dt, double drag)
 				std::cout << "wgp: " << wgp << std::endl;
 				std::cout << "node.p: " << node.p.transpose() << std::endl;
 			}
-
-			// PIC
-			// node.m += wgp * mp.m;
-			// node.p += wgp * mp.m * mp.v;
 		}
-
-		//std::cout << "p = " << p << ", wgp_total = " << wgp_total << std::endl;
 	}
 }
 
@@ -153,6 +147,5 @@ void CalculatePointCloudVolumes(PointCloud& curr_point_cloud, Grid& grid)
 		}
 
 		mp.vol = (mass_from_grid != 0.0) ? mp.m / mass_from_grid : 0.0;
-		//std::cout << mp.vol << std::endl;
 	}
 }

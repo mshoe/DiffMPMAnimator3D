@@ -154,16 +154,20 @@ void optimizationCallback()
 {
     ImGui::PushItemWidth(100);
 
-
+    static int num_animations = 10;
     static int num_timesteps = 60;
     static int control_stride = 10;
     static int max_gd_iters = 25;
     static int max_ls_iters = 15;
     static double initial_alpha = 0.05;
     static double gd_tol = 1e-3;
+    ImGui::InputInt("number of temporal optimizations", &num_animations);
     ImGui::InputInt("number of timesteps", &num_timesteps);
     ImGui::InputInt("control stride", &control_stride);
-    ImGui::InputInt("max gradient descent iterations", &max_gd_iters);
+    ImGui::InputInt("max gradient descent iterations (per control timestep)", &max_gd_iters);
+    ImGui::InputInt("max line search iterations (per gradient descent iteration)", &max_ls_iters);
+    ImGui::InputDouble("Initial line search step size", &initial_alpha);
+    ImGui::InputDouble("Gradient convergence tolerance factor", &gd_tol);
 
     if (ImGui::Button("Load computation graph"))
     {
@@ -172,36 +176,33 @@ void optimizationCallback()
 
     if (ImGui::Button("Optimize Control Sequence"))
     {
-        comp_graph->OptimizeDefGradControlSequence(
-            num_timesteps,
-            scene_input.dt,
-            scene_input.drag,
-            scene_input.f_ext,
-            control_stride,
-            max_gd_iters,
-            max_ls_iters,
-            initial_alpha,
-            gd_tol
-        );
+        for (int i = 0; i < num_animations; i++) 
+        {
+            comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
+            comp_graph->layers.resize(1);
+
+            comp_graph->OptimizeDefGradControlSequence(
+                num_timesteps,
+                scene_input.dt,
+                scene_input.drag,
+                scene_input.f_ext,
+                control_stride,
+                max_gd_iters,
+                max_ls_iters,
+                initial_alpha,
+                gd_tol
+            );
+
+            // RENDER
+            for (size_t t = 0; t < comp_graph->layers.size(); t++) {
+                auto point_positions = comp_graph->layers[t].point_cloud->GetPointPositions();
+                ps_point_cloud->updatePointPositions(point_positions);
+
+                polyscope::screenshot();
+            }
+        }
     }
 
-    if (ImGui::Button("Optimize Control Sequence using latest point cloud"))
-    {
-        comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
-        comp_graph->layers.resize(1);
-        
-        comp_graph->OptimizeDefGradControlSequence(
-            num_timesteps,
-            scene_input.dt,
-            scene_input.drag,
-            scene_input.f_ext,
-            10,
-            25,
-            15,
-            0.025,
-            1e-3
-        );
-    }
 
 
     static int layer = 0;
