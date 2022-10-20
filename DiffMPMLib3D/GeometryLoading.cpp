@@ -33,11 +33,9 @@ std::vector<Vec3> GeometryLoading::GeneratePointCloudFromWatertightTriangleMesh(
 
 
     // 2. get squared distance queries from sample points to mesh
-    //VectorXd sqrD;
     VectorXd S;
     VectorXi I;
     MatrixXd C;
-    //igl::point_mesh_squared_distance(P, V, F, sqrD, I, C);
     MatrixXd N;
 
     // 3. get signed distances

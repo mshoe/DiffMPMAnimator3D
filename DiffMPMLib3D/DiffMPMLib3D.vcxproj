@@ -114,12 +114,16 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -134,6 +138,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\deps;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -142,6 +147,9 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BackPropagation.h" />
@@ -154,19 +162,21 @@
     <ClInclude Include="Interpolation.h" />
     <ClInclude Include="MaterialPoint.h" />
     <ClInclude Include="GridNode.h" />
+    <ClInclude Include="MultiThreadForwardSimulation.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PointCloud.h" />
+    <ClInclude Include="Tensor3x3x3x3.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BackPropagation.cpp" />
     <ClCompile Include="CompGraph.cpp" />
-    <ClCompile Include="DiffMPMLib3D.cpp" />
     <ClCompile Include="Elasticity.cpp" />
     <ClCompile Include="ForwardSimulation.cpp" />
     <ClCompile Include="GeometryLoading.cpp" />
     <ClCompile Include="Grid.cpp" />
     <ClCompile Include="GridNode.cpp" />
     <ClCompile Include="MaterialPoint.cpp" />
+    <ClCompile Include="MultiThreadForwardSimulation.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -174,6 +184,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PointCloud.cpp" />
+    <ClCompile Include="Tensor3x3x3x3.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

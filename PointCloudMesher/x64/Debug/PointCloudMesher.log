@@ -1,0 +1,245 @@
+﻿  libigl_tutorial_715.cpp
+X:\Projects\MPMAnimator3D\include\polyscope\render\engine.h(426,15): warning C4305: 'initializing': truncation from 'double' to 'float'
+X:\Projects\MPMAnimator3D\include\polyscope\transformation_gizmo.h(44,28): warning C4305: 'initializing': truncation from 'double' to 'const float'
+X:\Projects\MPMAnimator3D\include\polyscope\transformation_gizmo.h(45,28): warning C4305: 'initializing': truncation from 'double' to 'const float'
+X:\Projects\MPMAnimator3D\include\polyscope\transformation_gizmo.h(47,25): warning C4305: 'initializing': truncation from 'double' to 'const float'
+  PointCloudMesher.cpp
+X:\Projects\MPMAnimator3D\include\polyscope\render\engine.h(426,15): warning C4305: 'initializing': truncation from 'double' to 'float'
+X:\Projects\MPMAnimator3D\include\polyscope\transformation_gizmo.h(44,28): warning C4305: 'initializing': truncation from 'double' to 'const float'
+X:\Projects\MPMAnimator3D\include\polyscope\transformation_gizmo.h(45,28): warning C4305: 'initializing': truncation from 'double' to 'const float'
+X:\Projects\MPMAnimator3D\include\polyscope\transformation_gizmo.h(47,25): warning C4305: 'initializing': truncation from 'double' to 'const float'
+X:\Projects\MPMAnimator3D\PointCloudMesher\PointCloudMesher.cpp(37,32): warning C4018: '<': signed/unsigned mismatch
+X:\Projects\MPMAnimator3D\PointCloudMesher\PointCloudMesher.cpp(73,33): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+X:\Projects\MPMAnimator3D\deps\igl\marching_cubes.cpp(35,20): warning C4244: 'argument': conversion from 'double' to 'Eigen::Index', possible loss of data
+X:\Projects\MPMAnimator3D\PointCloudMesher\PointCloudMesher.cpp(90): message : see reference to function template instantiation 'void igl::marching_cubes<Derived,Eigen::Matrix<double,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,-1,0,-1,-1>,Eigen::Matrix<int,-1,-1,0,-1,-1>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<double,-1,-1,0,-1,-1>> &,const unsigned int,const unsigned int,const unsigned int,const double,Eigen::PlainObjectBase<Eigen::Matrix<double,-1,-1,0,-1,-1>> &,Eigen::PlainObjectBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,1,0,-1,1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\marching_cubes.cpp(36,20): warning C4244: 'argument': conversion from 'double' to 'Eigen::Index', possible loss of data
+X:\Projects\MPMAnimator3D\deps\igl\marching_cubes.cpp(75,16): warning C4018: '<': signed/unsigned mismatch
+X:\Projects\MPMAnimator3D\deps\igl\marching_cubes.cpp(77,18): warning C4018: '<': signed/unsigned mismatch
+X:\Projects\MPMAnimator3D\deps\igl\marching_cubes.cpp(79,20): warning C4018: '<': signed/unsigned mismatch
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\include\xutility(238,77): warning C4244: 'argument': conversion from '_Ty' to 'int', possible loss of data
+          with
+          [
+              _Ty=double
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\include\memory(2022): message : see reference to function template instantiation 'void std::_Construct_in_place<_Ty,double,double,double,double,Vec3&>(_Ty &,double &&,double &&,double &&,double &&,Vec3 &) noexcept(false)' being compiled
+          with
+          [
+              _Ty=Grid
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\include\memory(2741): message : see reference to function template instantiation 'std::_Ref_count_obj2<Grid>::_Ref_count_obj2<_Ty,_Ty,_Ty,_Ty,Vec3&>(_Ty &&,_Ty &&,_Ty &&,_Ty &&,Vec3 &)' being compiled
+          with
+          [
+              _Ty=double
+          ]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.33.31629\include\memory(2742): message : see reference to function template instantiation 'std::_Ref_count_obj2<Grid>::_Ref_count_obj2<_Ty,_Ty,_Ty,_Ty,Vec3&>(_Ty &&,_Ty &&,_Ty &&,_Ty &&,Vec3 &)' being compiled
+          with
+          [
+              _Ty=double
+          ]
+X:\Projects\MPMAnimator3D\PointCloudMesher\PointCloudMesher.cpp(80): message : see reference to function template instantiation 'std::shared_ptr<Grid> std::make_shared<Grid,double,double,double,double,Vec3&>(double &&,double &&,double &&,double &&,Vec3 &)' being compiled
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(603,1): warning C4267: 'argument': conversion from 'size_t' to 'glm::vec<3,float,glm::packed_highp>::length_type', possible loss of data
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(777): message : see reference to function template instantiation 'std::vector<glm::vec3,std::allocator<glm::vec3>> polyscope::adaptorF_convertArrayOfVectorToStdVectorImpl<glm::vec3,3,V,void>(polyscope::PreferenceT<7>,const T &)' being compiled
+          with
+          [
+              V=Eigen::MatrixXd,
+              T=Eigen::MatrixXd
+          ]
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(1027): message : see reference to function template instantiation 'std::vector<glm::vec3,std::allocator<glm::vec3>> polyscope::adaptorF_convertArrayOfVectorToStdVector<glm::vec3,3,V>(const T &)' being compiled
+          with
+          [
+              V=Eigen::MatrixXd,
+              T=Eigen::MatrixXd
+          ]
+X:\Projects\MPMAnimator3D\include\polyscope\surface_mesh.ipp(6): message : see reference to function template instantiation 'std::vector<glm::vec3,std::allocator<glm::vec3>> polyscope::standardizeVectorArray<glm::vec3,3,V>(const T &)' being compiled
+          with
+          [
+              V=Eigen::MatrixXd,
+              T=Eigen::MatrixXd
+          ]
+X:\Projects\MPMAnimator3D\PointCloudMesher\PointCloudMesher.cpp(129): message : see reference to function template instantiation 'polyscope::SurfaceMesh *polyscope::registerSurfaceMesh<Eigen::MatrixXd,Eigen::MatrixXi>(std::string,const V &,const F &)' being compiled
+          with
+          [
+              V=Eigen::MatrixXd,
+              F=Eigen::MatrixXi
+          ]
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(608,32): warning C4244: '=': conversion from 'const double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(622,1): warning C4267: 'argument': conversion from 'size_t' to 'glm::vec<3,float,glm::packed_highp>::length_type', possible loss of data
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(777): message : see reference to function template instantiation 'std::vector<glm::vec3,std::allocator<glm::vec3>> polyscope::adaptorF_convertArrayOfVectorToStdVectorImpl<glm::vec3,3,T,void>(polyscope::PreferenceT<6>,const T &)' being compiled
+          with
+          [
+              T=std::vector<Vec3,std::allocator<Vec3>>
+          ]
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(1027): message : see reference to function template instantiation 'std::vector<glm::vec3,std::allocator<glm::vec3>> polyscope::adaptorF_convertArrayOfVectorToStdVector<glm::vec3,3,T>(const T &)' being compiled
+          with
+          [
+              T=std::vector<Vec3,std::allocator<Vec3>>
+          ]
+X:\Projects\MPMAnimator3D\include\polyscope\point_cloud.ipp(9): message : see reference to function template instantiation 'std::vector<glm::vec3,std::allocator<glm::vec3>> polyscope::standardizeVectorArray<glm::vec3,3,T>(const T &)' being compiled
+          with
+          [
+              T=std::vector<Vec3,std::allocator<Vec3>>
+          ]
+X:\Projects\MPMAnimator3D\PointCloudMesher\PointCloudMesher.cpp(146): message : see reference to function template instantiation 'polyscope::PointCloud *polyscope::registerPointCloud<std::vector<Vec3,std::allocator<Vec3>>>(std::string,const T &)' being compiled
+          with
+          [
+              T=std::vector<Vec3,std::allocator<Vec3>>
+          ]
+X:\Projects\MPMAnimator3D\include\polyscope\standardize_data_array.h(627,37): warning C4244: '=': conversion from 'const double' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\per_face_normals.cpp(21,13): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<int,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\per_face_normals.cpp(44): message : see reference to function template instantiation 'void igl::per_face_normals<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,3,1,0,3,1>,Eigen::Matrix<double,-1,3,0,-1,3>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,const Eigen::MatrixBase<Eigen::Matrix<double,3,1,0,3,1>> &,Eigen::PlainObjectBase<Eigen::Matrix<double,-1,3,0,-1,3>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\per_vertex_normals.cpp(25): message : see reference to function template instantiation 'void igl::per_face_normals<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,3,0,-1,3>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,Eigen::PlainObjectBase<Eigen::Matrix<double,-1,3,0,-1,3>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\per_vertex_normals.cpp(36): message : see reference to function template instantiation 'void igl::per_vertex_normals<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,-1,0,-1,-1>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,const igl::PerVertexNormalsWeightingType,Eigen::PlainObjectBase<Derived> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\PointCloudMesher\PointCloudMesher.cpp(164): message : see reference to function template instantiation 'void igl::per_vertex_normals<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,-1,0,-1,-1>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,Eigen::PlainObjectBase<Derived> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(25,25): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\per_vertex_normals.cpp(47): message : see reference to function template instantiation 'void igl::doublearea<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,1,0,-1,1>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,Eigen::PlainObjectBase<Eigen::Matrix<double,-1,1,0,-1,1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\per_vertex_normals.cpp(25): message : see reference to function template instantiation 'void igl::per_vertex_normals<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,3,0,-1,3>,Eigen::Matrix<double,-1,-1,0,-1,-1>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,const igl::PerVertexNormalsWeightingType,const Eigen::MatrixBase<Eigen::Matrix<double,-1,3,0,-1,3>> &,Eigen::PlainObjectBase<Derived> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(25,17): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'const int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(21,1): warning C4267: 'argument': conversion from 'size_t' to 'const int', possible loss of data
+X:\Projects\MPMAnimator3D\deps\igl\squared_edge_lengths.cpp(19,23): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<int,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\internal_angles.cpp(19): message : see reference to function template instantiation 'void igl::squared_edge_lengths<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,-1,0,-1,-1>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,Eigen::PlainObjectBase<Derived> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\per_vertex_normals.cpp(47): message : see reference to function template instantiation 'void igl::internal_angles<Derived,Eigen::Matrix<int,-1,-1,0,-1,-1>,Eigen::Matrix<double,-1,3,0,-1,3>>(const Eigen::MatrixBase<Derived> &,const Eigen::MatrixBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &,Eigen::PlainObjectBase<Eigen::Matrix<double,-1,3,0,-1,3>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\squared_edge_lengths.cpp(19,15): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'const int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<int,-1,-1,0,-1,-1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(30,17): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(149): message : see reference to function template instantiation 'void igl::sort<Derived,Eigen::Matrix<double,-1,3,0,-1,3>,Eigen::Matrix<int,-1,-1,0,-1,-1>>(const Eigen::DenseBase<Derived> &,const int,const bool,Eigen::PlainObjectBase<Derived> &,Eigen::PlainObjectBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(21): message : see reference to function template instantiation 'void igl::doublearea<Derived,Eigen::Matrix<double,-1,1,0,-1,1>>(const Eigen::MatrixBase<Derived> &,const double,Eigen::PlainObjectBase<Eigen::Matrix<double,-1,1,0,-1,1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(43,17): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(27,1): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+X:\Projects\MPMAnimator3D\deps\igl\parallel_for.h(110,62): warning C4244: 'argument': conversion from 'Index' to 'const int', possible loss of data
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(149): message : see reference to function template instantiation 'bool igl::parallel_for<Index,igl::doublearea::<lambda_1>>(const Index,const FunctionType &,const size_t)' being compiled
+          with
+          [
+              Index=Index,
+              FunctionType=igl::doublearea::<lambda_1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(178,17): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(27): message : see reference to function template instantiation 'void igl::sort2<Derived,Eigen::Matrix<double,-1,3,0,-1,3>,Eigen::Matrix<int,-1,-1,0,-1,-1>>(const Eigen::DenseBase<Derived> &,const int,const bool,Eigen::PlainObjectBase<Derived> &,Eigen::PlainObjectBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(149): message : see reference to function template instantiation 'void igl::sort<Derived,Eigen::Matrix<double,-1,3,0,-1,3>,Eigen::Matrix<int,-1,-1,0,-1,-1>>(const Eigen::DenseBase<Derived> &,const int,const bool,Eigen::PlainObjectBase<Derived> &,Eigen::PlainObjectBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(180,17): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(224,17): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(27): message : see reference to function template instantiation 'void igl::sort3<Derived,Eigen::Matrix<double,-1,3,0,-1,3>,Eigen::Matrix<int,-1,-1,0,-1,-1>>(const Eigen::DenseBase<Derived> &,const int,const bool,Eigen::PlainObjectBase<Derived> &,Eigen::PlainObjectBase<Eigen::Matrix<int,-1,-1,0,-1,-1>> &)' being compiled
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\sort.cpp(226,17): warning C4244: 'initializing': conversion from 'Eigen::EigenBase<Derived>::Index' to 'int', possible loss of data
+          with
+          [
+              Derived=Eigen::Matrix<double,-1,3,0,-1,3>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\parallel_for.h(135,15): warning C4018: '<': signed/unsigned mismatch
+X:\Projects\MPMAnimator3D\deps\igl\parallel_for.h(105): message : see reference to function template instantiation 'bool igl::parallel_for<Index,igl::parallel_for::<lambda_1>,igl::parallel_for::<lambda_2>,igl::parallel_for::<lambda_1>>(const Index,const PreFunctionType &,const FunctionType &,const AccumFunctionType &,const size_t)' being compiled
+          with
+          [
+              Index=Index,
+              PreFunctionType=igl::parallel_for::<lambda_1>,
+              FunctionType=igl::parallel_for::<lambda_2>,
+              AccumFunctionType=igl::parallel_for::<lambda_1>
+          ]
+X:\Projects\MPMAnimator3D\deps\igl\doublearea.cpp(149): message : see reference to function template instantiation 'bool igl::parallel_for<Index,igl::doublearea::<lambda_1>>(const Index,const FunctionType &,const size_t)' being compiled
+          with
+          [
+              Index=Index,
+              FunctionType=igl::doublearea::<lambda_1>
+          ]
+  Generating Code...
+  PointCloudMesher.vcxproj -> X:\Projects\MPMAnimator3D\build\x64\Debug\PointCloudMesher.exe

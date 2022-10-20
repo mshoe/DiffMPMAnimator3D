@@ -15,6 +15,7 @@
 #include <memory>
 #include <math.h>
 #include <iostream>
+#include <array>
 
 typedef Eigen::Vector3d Vec3;
 typedef Eigen::Matrix3d Mat3;

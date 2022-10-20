@@ -11,10 +11,15 @@ struct Grid
 	*/
 
 	Grid(int _dim_x, int _dim_y, int dim_z, double _dx, Vec3 _min_point);
+	Grid(const Grid& grid);
 
-	std::vector<std::reference_wrapper<GridNode>> QueryPoint_CubicBSpline(Vec3 point);
+	std::vector<std::reference_wrapper<GridNode>> QueryPoint_CubicBSpline(Vec3 point, std::vector<std::array<int, 3>>* indices = nullptr);
+	std::vector<std::reference_wrapper<const GridNode>> QueryPointConst_CubicBSpline(Vec3 point, std::vector<std::array<int, 3>>* indices = nullptr) const;
 
 	std::vector<Vec3> GetNodePositions() const;
+	std::vector<double> GetNodeMasses() const;
+	std::vector<Vec3> GetNodeVelocities() const;
+	void GetMassSDF(Eigen::MatrixXd& GV, Eigen::VectorXd& Gf) const;
 
 	void ResetGradients();
 

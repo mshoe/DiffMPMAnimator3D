@@ -9,15 +9,17 @@
 
 struct SceneInput
 {
-	std::string mpm_input_mesh_path = "data\\icosphere.obj";
-	std::string mpm_target_mesh_path = "data\\torus.obj";
+	std::string mpm_input_mesh_path = "experiments\\004 sphere to bunny\\input\\icosphere.obj";
+	std::string mpm_target_mesh_path = "experiments\\004 sphere to bunny\\input\\bunny.obj";
 
 
 	double grid_dx = 1.0; // TODO: make this 1.0 and use scaled up meshes
-	int points_per_cell_cuberoot = 4;
+	int points_per_cell_cuberoot = 2;
 
-	Vec3 grid_min_point = Vec3(-8.0, -8.0, -8.0);
-	Vec3 grid_max_point = Vec3(8.0, 8.0, 8.0);
+	/*Vec3 grid_min_point = Vec3(-8.0, -8.0, -8.0);
+	Vec3 grid_max_point = Vec3(8.0, 8.0, 8.0);*/
+	Vec3 grid_min_point = Vec3(-8.0, -8.0, -8.0) * 2.0;
+	Vec3 grid_max_point = Vec3(8.0, 8.0, 8.0) * 2.0;
 
 	double lam = 58333.0;
 	double mu = 38888.9;

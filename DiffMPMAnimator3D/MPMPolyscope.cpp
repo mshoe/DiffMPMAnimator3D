@@ -15,10 +15,11 @@ bool LoadMPMPointCloudFromObj(
     std::cout << "reading " << obj_path << "..." << std::endl;
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
-    igl::readOBJ(obj_path, V, F);
+    if (!igl::readOBJ(obj_path, V, F))
+        return false;
     Vec3 min_point = Vec3(DBL_MAX, DBL_MAX, DBL_MAX);
     Vec3 max_point = Vec3(-DBL_MAX, -DBL_MAX, -DBL_MAX);
-    for (size_t i = 0; i < V.rows(); i++) {
+    for (size_t i = 0; i < (size_t)V.rows(); i++) {
         for (size_t j = 0; j < 3; j++) {
             min_point[j] = std::fmin(min_point[j], V(i, j));
             max_point[j] = std::fmax(max_point[j], V(i, j));
@@ -64,13 +65,13 @@ bool LoadScene(const SceneInput& scene_input,
     std::cout << "generating mpm grid..." << std::endl;
     int grid_dims[3];
     for (int i = 0; i < 3; i++) {
-        grid_dims[i] = std::ceil((scene_input.grid_max_point[0] - scene_input.grid_min_point[0]) / scene_input.grid_dx);
+        grid_dims[i] = (int)std::ceil((scene_input.grid_max_point[0] - scene_input.grid_min_point[0]) / scene_input.grid_dx);
     } 
     mpm_grid = std::make_shared<Grid>(grid_dims[0], grid_dims[1], grid_dims[2], scene_input.grid_dx, scene_input.grid_min_point);
 
 
     // calculate volume
-    CalculatePointCloudVolumes(*mpm_point_cloud, *mpm_grid);
+    SingleThreadMPM::CalculatePointCloudVolumes(*mpm_point_cloud, *mpm_grid);
 
     // Polyscope point cloud
     std::cout << "registering point cloud..." << std::endl;
@@ -111,7 +112,7 @@ bool LoadCompGraph(
         return false;
 
     // calculate volume
-    CalculatePointCloudVolumes(*target_point_cloud, *grid);
+    SingleThreadMPM::CalculatePointCloudVolumes(*target_point_cloud, *grid);
 
     // Polyscope point cloud
     std::cout << "registering point cloud..." << std::endl;
@@ -122,7 +123,7 @@ bool LoadCompGraph(
 
     // Then turn it into a target grid
     auto target_grid = std::make_shared<Grid>(*grid);
-    P2G(*target_point_cloud, *target_grid, 0.0, 0.0);
+    SingleThreadMPM::P2G(*target_point_cloud, *target_grid, 0.0, 0.0);
 
 
     // Finally make the comp graph

@@ -30,9 +30,14 @@ public:
 		double gd_tol // tolerance factor used for determining when gradient descent has converged
 	);
 
+	void SetUpCompGraph(int num_layers);
+
+	double EndLayerMassLoss();
 
 	void ComputeForwardPass(size_t start_layer);
 	void ComputeBackwardPass(size_t control_layer);
+
+	void FiniteDifferencesGradientTest(int num_steps, size_t particle_id);
 
 
 	std::vector<CompGraphLayer> layers;

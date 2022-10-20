@@ -10,11 +10,30 @@
 // C++ includes
 #include <iostream>
 #include <sstream>
+#include <chrono>
 using namespace std;
 
 // DiffMPMLib3D
 #include "MPMPolyscope.h"
 #include "ForwardSimulation.h"
+#include "MultiThreadForwardSimulation.h"
+#include "Elasticity.h"
+
+unsigned GetNumberOfDigits(unsigned i)
+{
+    return i > 0 ? (int)log10((double)i) + 1 : 1;
+}
+
+std::string LeadingZerosNumberStr(int number, int num_digits_of_string)
+{
+    std::string ret = "";
+    int num_digits_of_number = GetNumberOfDigits(number);
+    for (unsigned int j = 0; j < num_digits_of_string - num_digits_of_number; j++) {
+        ret += "0";
+    }
+    ret += std::to_string(number);
+    return ret;
+}
 
 SceneInput scene_input;
 
@@ -24,22 +43,29 @@ std::shared_ptr<Grid> mpm_grid = nullptr;
 polyscope::PointCloud* ps_point_cloud = nullptr;
 polyscope::PointCloud* ps_grid = nullptr;
 
-void realtimeCallback() 
+void RealTimeMPMImGUI() 
 {
-    ImGui::PushItemWidth(100);
-
     double screenshot_interval = 1.0 / 30.0;
 
     static double time = 0.0;
-    static double time_until_next_screenshot = 0.0;
-    static int frame = 0;
-
+    static int num_threads = 4;
+    static std::vector<std::shared_ptr<Grid>> proxy_grids;
+    if (ImGui::InputInt("number of threads", &num_threads))
+    {
+        if (num_threads < 1) num_threads = 1;
+        if (num_threads > 8) num_threads = 8;
+    }
     static bool scene_loaded = false;
     if (scene_loaded)
         ImGui::BeginDisabled();
     if (ImGui::Button("Load Scene"))
     {
         LoadScene(scene_input, mpm_point_cloud, mpm_grid, &ps_point_cloud, &ps_grid);
+        proxy_grids.clear();
+        proxy_grids.resize(num_threads);
+        for (int i = 0; i < num_threads; i++) {
+            proxy_grids[i] = std::make_shared<Grid>(*mpm_grid);
+        }
         scene_loaded = true;
     }
     if (scene_loaded)
@@ -51,43 +77,82 @@ void realtimeCallback()
         return;
     }
 
+    static double& gravity = scene_input.f_ext[2];
+    ImGui::InputDouble("gravity", &gravity);
+
+    static bool multi_threaded = false;
+    ImGui::Checkbox("multithreaded", &multi_threaded);
     if (ImGui::Button("timestep")) {
-        // executes when button is pressed
-        ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+        if (!multi_threaded) {
+            SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+        }
+        else {
+            MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, scene_input.dt, scene_input.drag, scene_input.f_ext);
+        }
         time += scene_input.dt;
-        frame++;
 
         auto point_positions = mpm_point_cloud->GetPointPositions();
         ps_point_cloud->updatePointPositions(point_positions);
+
+        auto node_masses = mpm_grid->GetNodeMasses();
+        ps_grid->addScalarQuantity("masses", node_masses);
+
+        auto node_velocities = mpm_grid->GetNodeVelocities();
+        ps_grid->addVectorQuantity("velocities", node_velocities);
     }
+
+    static int num_timesteps = 100;
+    ImGui::InputInt("Num timesteps", &num_timesteps);
+    if (ImGui::Button("X timesteps"))
+    {
+        auto begin_clock = std::chrono::steady_clock::now();
+        for (size_t i = 0; i < num_timesteps; i++) {
+            if (!multi_threaded) {
+                SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+            }
+            else {
+                MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, scene_input.dt, scene_input.drag, scene_input.f_ext);
+            }
+            time += scene_input.dt;
+        }
+        auto end_clock = std::chrono::steady_clock::now();
+        std::cout << "Compute took " << std::chrono::duration_cast<std::chrono::seconds>(end_clock - begin_clock).count() << " seconds." << std::endl;
+
+        auto point_positions = mpm_point_cloud->GetPointPositions();
+        ps_point_cloud->updatePointPositions(point_positions);
+
+        auto node_masses = mpm_grid->GetNodeMasses();
+        ps_grid->addScalarQuantity("masses", node_masses);
+
+        auto node_velocities = mpm_grid->GetNodeVelocities();
+        ps_grid->addVectorQuantity("velocities", node_velocities);
+    }
+    
 
     if (ImGui::Button("screenshot")) {
         polyscope::screenshot();
+    }
+
+    if (ImGui::Button("export point cloud points"))
+    {
+        mpm_point_cloud->WriteToOBJ("points.obj");
     }
 
     
     static bool playing = false;
     ImGui::Checkbox("playing", &playing);
     if (playing) {
-        ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+        if (!multi_threaded) {
+            SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+        }
+        else {
+            MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, scene_input.dt, scene_input.drag, scene_input.f_ext);
+        }
         time += scene_input.dt;
-        time_until_next_screenshot -= scene_input.dt;
-        frame++;
 
         
-
-
-        
-        if (time_until_next_screenshot < 0.0) {
-            auto point_positions = mpm_point_cloud->GetPointPositions();
-            ps_point_cloud->updatePointPositions(point_positions);
-            time_until_next_screenshot = screenshot_interval;
-            polyscope::screenshot();
-        }
-
-        if (time > 10.0) {
-            playing = false;
-        }
+        auto point_positions = mpm_point_cloud->GetPointPositions();
+        ps_point_cloud->updatePointPositions(point_positions);
     }
 
 
@@ -139,12 +204,41 @@ void realtimeCallback()
 
         ImGui::TreePop();
     }
-
-
-    ImGui::PopItemWidth();
 }
 
 
+void CheckGradients()
+{
+    static double lam = 58333.0;
+    static double mu = 38888.9;
+    if (ImGui::Button("Print gradients"))
+    {
+        // ROTATION MATRIX
+        double a = 45.0 * 0.0174533;
+        Mat3 F;
+        F << 1, 0, 0, 0, cos(a), -sin(a), 0, sin(a), cos(a);
+
+        //Mat3 F;
+        //F.setIdentity();
+        F *= 0.8;
+
+        Tensor3x3x3x3 dJFit_dF = d_JFit_dF_FD(F);
+        std::cout << "d(J * inv(F.T)/dF finite differences:\n";
+        std::cout << ToString(dJFit_dF) << std::endl << std::endl;
+
+
+        Tensor3x3x3x3 dP_dF_FD = d2_FCE_psi_dF2_FD(F, lam, mu);
+        std::cout << "dP/dF finite differences:\n";
+        std::cout << ToString(dP_dF_FD) << std::endl << std::endl;
+
+
+        Tensor3x3x3x3 dP_dF_mult_trick = d2_FCE_psi_dF2_mult_trick(F, lam, mu);
+        std::cout << "dP/dF analytical:\n";
+        std::cout << ToString(dP_dF_mult_trick) << std::endl << std::endl;
+
+        TensorDiffStats(dP_dF_FD, dP_dF_mult_trick);
+    }
+}
 
 // FOR OPTIMIZATION
 polyscope::PointCloud* ps_target_point_cloud = nullptr;
@@ -154,66 +248,132 @@ void optimizationCallback()
 {
     ImGui::PushItemWidth(100);
 
-    static int num_animations = 10;
-    static int num_timesteps = 60;
-    static int control_stride = 10;
-    static int max_gd_iters = 25;
-    static int max_ls_iters = 15;
-    static double initial_alpha = 0.05;
-    static double gd_tol = 1e-3;
-    ImGui::InputInt("number of temporal optimizations", &num_animations);
-    ImGui::InputInt("number of timesteps", &num_timesteps);
-    ImGui::InputInt("control stride", &control_stride);
-    ImGui::InputInt("max gradient descent iterations (per control timestep)", &max_gd_iters);
-    ImGui::InputInt("max line search iterations (per gradient descent iteration)", &max_ls_iters);
-    ImGui::InputDouble("Initial line search step size", &initial_alpha);
-    ImGui::InputDouble("Gradient convergence tolerance factor", &gd_tol);
-
-    if (ImGui::Button("Load computation graph"))
+    if (ImGui::TreeNode("Gradient Correctness Checking"))
     {
-        LoadCompGraph(scene_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
+        CheckGradients();
+        ImGui::TreePop();
     }
 
-    if (ImGui::Button("Optimize Control Sequence"))
+    if (ImGui::TreeNode("RT MPM GUI"))
     {
-        for (int i = 0; i < num_animations; i++) 
+        RealTimeMPMImGUI();
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Optimization"))
+
+    {
+        static int num_animations = 40;
+        static int num_timesteps = 30;
+        static int control_stride = 10;
+        static int max_gd_iters = 25;
+        static int max_ls_iters = 15;
+        static double initial_alpha = 0.1;
+        static double gd_tol = 1e-3;
+        ImGui::InputInt("number of temporal optimizations", &num_animations);
+        ImGui::InputInt("number of timesteps", &num_timesteps);
+        ImGui::InputInt("control stride", &control_stride);
+        ImGui::InputInt("max gradient descent iterations (per control timestep)", &max_gd_iters);
+        ImGui::InputInt("max line search iterations (per gradient descent iteration)", &max_ls_iters);
+        ImGui::InputDouble("Initial line search step size", &initial_alpha);
+        ImGui::InputDouble("Gradient convergence tolerance factor", &gd_tol);
+
+        if (ImGui::Button("Load computation graph"))
         {
-            comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
-            comp_graph->layers.resize(1);
+            LoadCompGraph(scene_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
+        }
 
-            comp_graph->OptimizeDefGradControlSequence(
-                num_timesteps,
-                scene_input.dt,
-                scene_input.drag,
-                scene_input.f_ext,
-                control_stride,
-                max_gd_iters,
-                max_ls_iters,
-                initial_alpha,
-                gd_tol
-            );
+        if (!comp_graph)
+            ImGui::BeginDisabled();
 
-            // RENDER
-            for (size_t t = 0; t < comp_graph->layers.size(); t++) {
-                auto point_positions = comp_graph->layers[t].point_cloud->GetPointPositions();
-                ps_point_cloud->updatePointPositions(point_positions);
+        if (ImGui::Button("Set initial deformation gradients"))
+        {
 
-                polyscope::screenshot();
+            auto mpm_pc = comp_graph->layers.front().point_cloud;
+            for (size_t i = 0; i < mpm_pc->points.size(); i++) {
+                // ROTATION MATRIX
+                double a = 45.0 * 0.0174533;
+                Mat3 F;
+                F << 1, 0, 0, 0, cos(a), -sin(a), 0, sin(a), cos(a);
+
+                //Mat3 F;
+                //F.setIdentity();
+                F *= 0.8;
+                mpm_pc->points[i].F = F;
             }
         }
-    }
+
+        if (ImGui::Button("Finite Differences test dLdF"))
+        {
+            comp_graph->FiniteDifferencesGradientTest(num_timesteps, 0);
+        }
+
+        if (ImGui::Button("Optimize Control Sequence"))
+        {
+            auto begin_clock = std::chrono::steady_clock::now();
+            for (int i = 0; i < num_animations; i++)
+            {
+                auto curr_begin_clock = std::chrono::steady_clock::now();
+                std::cout << "**********OPTIMIZING ANIMATION INTERVAL: " << i << "************" << std::endl;
+                comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
+                comp_graph->layers.resize(1);
+
+
+                comp_graph->OptimizeDefGradControlSequence(
+                    num_timesteps,
+                    scene_input.dt,
+                    scene_input.drag,
+                    scene_input.f_ext,
+                    control_stride,
+                    max_gd_iters,
+                    max_ls_iters,
+                    initial_alpha,
+                    gd_tol
+                );
+
+                // RENDER
+                for (size_t t = 0; t < comp_graph->layers.size(); t++)
+                {
+                    std::string mpm_output_folder = "output\\";
+                    std::string number_str = LeadingZerosNumberStr(i * num_timesteps + t, 6);
+
+                    auto point_positions = comp_graph->layers[t].point_cloud->GetPointPositions();
+                    ps_point_cloud->updatePointPositions(point_positions);
+
+
+                    std::string png_output_path = mpm_output_folder + "screenshot_" + number_str + ".png";
+                    polyscope::screenshot(png_output_path, false);
+
+                    // SAVE POINT POSITIONS TO OBJ FILE
+                    std::string mpm_output_path = mpm_output_folder + "mpm_points_" + number_str + ".obj";
+                    comp_graph->layers[t].point_cloud->WriteToOBJ(mpm_output_path);
+                }
+
+                auto curr_end_clock = std::chrono::steady_clock::now();
+                std::cout << "Animation interval " << i << " took " << std::chrono::duration_cast<std::chrono::seconds>(curr_end_clock - curr_begin_clock).count() << " seconds." << std::endl;
+                std::cout << "Full animation took " << std::chrono::duration_cast<std::chrono::seconds>(curr_end_clock - begin_clock).count() << " seconds so far." << std::endl;
+
+            }
+        }
 
 
 
-    static int layer = 0;
-    if (ImGui::InputInt("layer", &layer) && comp_graph) {
-        if (layer >= (int)comp_graph->layers.size())
-            layer = (int)comp_graph->layers.size() - 1;
-        if (layer < 0)
-            layer = 0;
-        
-        auto point_positions = comp_graph->layers[layer].point_cloud->GetPointPositions();
-        ps_point_cloud->updatePointPositions(point_positions);
+        static int layer = 0;
+        if (ImGui::InputInt("layer", &layer) && comp_graph) {
+            if (layer >= (int)comp_graph->layers.size())
+                layer = (int)comp_graph->layers.size() - 1;
+            if (layer < 0)
+                layer = 0;
+
+            auto point_positions = comp_graph->layers[layer].point_cloud->GetPointPositions();
+            ps_point_cloud->updatePointPositions(point_positions);
+        }
+
+
+        if (!comp_graph)
+            ImGui::EndDisabled();
+
+        ImGui::TreePop();
     }
 
     ImGui::PopItemWidth();
@@ -222,9 +382,6 @@ void optimizationCallback()
 
 int main()
 {
-    std::cout << "Hello World!\n";
-    
-
     // Initialize polyscope, creating graphics contexts and constructing a window.
     // Should be called exactly once.
     polyscope::view::upDir = polyscope::UpDir::ZUp;
@@ -238,19 +395,9 @@ int main()
 
     // Specify the callback
     polyscope::state::userCallback = optimizationCallback;
+    //polyscope::state::userCallback = realtimeCallback;
 
     // Pass control flow to polyscope, displaying the interactive window.
     // Function will return when user closes the window.
     polyscope::show();
-
-    // More of your code
-    // ...
-
-    
-
-    // Show again. Data is preserved between calls to show()
-    // unless explicitly removed.
-    //polyscope::show();
-
-    //todo: make mpm library
 }

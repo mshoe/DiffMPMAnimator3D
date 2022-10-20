@@ -50,3 +50,4 @@ compile_commands.json
 # output
 *.png
 *.mp4
+/PointCloudMesher/x64/Release

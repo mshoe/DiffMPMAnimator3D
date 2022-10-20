@@ -54,11 +54,14 @@
     <ClInclude Include="BackPropagation.h">
       <Filter>mpm</Filter>
     </ClInclude>
+    <ClInclude Include="Tensor3x3x3x3.h">
+      <Filter>mpm</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiThreadForwardSimulation.h">
+      <Filter>mpm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DiffMPMLib3D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,6 +90,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GridNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tensor3x3x3x3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiThreadForwardSimulation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
