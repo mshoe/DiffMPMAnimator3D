@@ -4,7 +4,7 @@
 #include "BackPropagation.h"
 #include "Interpolation.h"
 
-void CompGraph::SetUpCompGraph(int num_layers)
+void DiffMPMLib3D::CompGraph::SetUpCompGraph(int num_layers)
 {
 	assert(num_layers > 0);
 	layers.resize(num_layers);
@@ -14,10 +14,10 @@ void CompGraph::SetUpCompGraph(int num_layers)
 	}
 }
 
-double CompGraph::EndLayerMassLoss()
+double DiffMPMLib3D::CompGraph::EndLayerMassLoss()
 {
 	// Computes both the mass loss and the initial derivatives for backpropagation
-	double out_of_target_penalty = 3.0;
+	double out_of_target_penalty = 1.0;
 
 	PointCloud& point_cloud = *layers.back().point_cloud;
 	Grid& grid = *layers.back().grid;
@@ -139,7 +139,7 @@ double CompGraph::EndLayerMassLoss()
 	return loss;
 }
 
-void CompGraph::ComputeForwardPass(size_t start_layer)
+void DiffMPMLib3D::CompGraph::ComputeForwardPass(size_t start_layer)
 {
 	for (size_t i = start_layer; i < layers.size() - 1; i++)
 	{
@@ -151,7 +151,7 @@ void CompGraph::ComputeForwardPass(size_t start_layer)
 	}
 }
 
-void CompGraph::ComputeBackwardPass(size_t control_layer)
+void DiffMPMLib3D::CompGraph::ComputeBackwardPass(size_t control_layer)
 {
 	for (int i = (int)layers.size() - 2; i >= (int)control_layer; i--)
 	{
@@ -162,7 +162,7 @@ void CompGraph::ComputeBackwardPass(size_t control_layer)
 	}
 }
 
-CompGraph::CompGraph(std::shared_ptr<PointCloud> initial_point_cloud, std::shared_ptr<Grid> grid, std::shared_ptr<const Grid> _target_grid)
+DiffMPMLib3D::CompGraph::CompGraph(std::shared_ptr<PointCloud> initial_point_cloud, std::shared_ptr<Grid> grid, std::shared_ptr<const Grid> _target_grid)
 {
 	layers.clear();
 	layers.resize(1);
@@ -173,7 +173,7 @@ CompGraph::CompGraph(std::shared_ptr<PointCloud> initial_point_cloud, std::share
 	target_grid = _target_grid;
 }
 
-void CompGraph::OptimizeDefGradControlSequence(
+void DiffMPMLib3D::CompGraph::OptimizeDefGradControlSequence(
 	// SIMULATION
 	int num_steps, // number of timestepes, aka layers in the comp graph
 	double _dt,
@@ -292,7 +292,7 @@ void CompGraph::OptimizeDefGradControlSequence(
 }
 
 
-void CompGraph::FiniteDifferencesGradientTest(int num_steps, size_t particle_id)
+void DiffMPMLib3D::CompGraph::FiniteDifferencesGradientTest(int num_steps, size_t particle_id)
 {
 	/*******FINITE DIFFERENCES TEST********/
 	std::streamsize prev_precision = std::cout.precision(16);

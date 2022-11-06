@@ -2,7 +2,7 @@
 #include "Tensor3x3x3x3.h"
 
 
-std::string ToString(const Tensor3x3x3x3& tensor)
+std::string DiffMPMLib3D::ToString(const Tensor3x3x3x3& tensor)
 {
     std::streamsize prev_precision = std::cout.precision(16);
     std::stringstream ss;
@@ -34,7 +34,7 @@ std::string ToString(const Tensor3x3x3x3& tensor)
     return ss.str();
 }
 
-void TensorDiffStats(const Tensor3x3x3x3& A, const Tensor3x3x3x3& B)
+void DiffMPMLib3D::TensorDiffStats(const Tensor3x3x3x3& A, const Tensor3x3x3x3& B)
 {
     // 1. L2 norm of difference
     double l2norm = 0.0;

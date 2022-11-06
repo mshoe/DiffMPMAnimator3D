@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "MaterialPoint.h"
 
-void MaterialPoint::ResetGradients()
+void DiffMPMLib3D::MaterialPoint::ResetGradients()
 {
 	dLdx.setZero();
 	dLdv.setZero();

@@ -15,8 +15,10 @@ bool LoadMPMPointCloudFromObj(
     std::cout << "reading " << obj_path << "..." << std::endl;
     Eigen::MatrixXd V;
     Eigen::MatrixXi F;
-    if (!igl::readOBJ(obj_path, V, F))
+    if (!igl::readOBJ(obj_path, V, F)) {
+        std::cout << "error reading " << obj_path << std::endl;
         return false;
+    }
     Vec3 min_point = Vec3(DBL_MAX, DBL_MAX, DBL_MAX);
     Vec3 max_point = Vec3(-DBL_MAX, -DBL_MAX, -DBL_MAX);
     for (size_t i = 0; i < (size_t)V.rows(); i++) {

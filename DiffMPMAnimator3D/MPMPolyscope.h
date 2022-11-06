@@ -5,12 +5,12 @@
 #include "CompGraph.h"
 #include "polyscope/point_cloud.h"
 
-
+using namespace DiffMPMLib3D;
 
 struct SceneInput
 {
-	std::string mpm_input_mesh_path = "experiments\\004 sphere to bunny\\input\\icosphere.obj";
-	std::string mpm_target_mesh_path = "experiments\\004 sphere to bunny\\input\\bunny.obj";
+	std::string mpm_input_mesh_path = "experiments\\007 pikachu no tail\\input\\icosphere.obj";
+	std::string mpm_target_mesh_path = "experiments\\007 pikachu no tail\\input\\pikachu.obj";
 
 
 	double grid_dx = 1.0; // TODO: make this 1.0 and use scaled up meshes

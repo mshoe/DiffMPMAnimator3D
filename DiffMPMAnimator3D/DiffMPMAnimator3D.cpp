@@ -11,13 +11,13 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
-using namespace std;
 
 // DiffMPMLib3D
 #include "MPMPolyscope.h"
 #include "ForwardSimulation.h"
 #include "MultiThreadForwardSimulation.h"
 #include "Elasticity.h"
+using namespace DiffMPMLib3D;
 
 unsigned GetNumberOfDigits(unsigned i)
 {
@@ -116,7 +116,7 @@ void RealTimeMPMImGUI()
             time += scene_input.dt;
         }
         auto end_clock = std::chrono::steady_clock::now();
-        std::cout << "Compute took " << std::chrono::duration_cast<std::chrono::seconds>(end_clock - begin_clock).count() << " seconds." << std::endl;
+        std::cout << "Compute took " << std::chrono::duration_cast<std::chrono::milliseconds>(end_clock - begin_clock).count() << " milliseconds." << std::endl;
 
         auto point_positions = mpm_point_cloud->GetPointPositions();
         ps_point_cloud->updatePointPositions(point_positions);
@@ -286,6 +286,17 @@ void optimizationCallback()
         if (!comp_graph)
             ImGui::BeginDisabled();
 
+        static int point_index = 0;
+        ImGui::InputInt("point index", &point_index);
+        if (ImGui::Button("Remove point")) {
+            comp_graph->layers.begin()->point_cloud->RemovePoint(point_index);
+            auto point_positions = comp_graph->layers.begin()->point_cloud->GetPointPositions();
+            
+            ps_point_cloud->updatePointPositions(point_positions);
+            ps_point_cloud->refresh();
+        }
+
+
         if (ImGui::Button("Set initial deformation gradients"))
         {
 
@@ -300,6 +311,22 @@ void optimizationCallback()
                 //F.setIdentity();
                 F *= 0.8;
                 mpm_pc->points[i].F = F;
+            }
+        }
+
+        static double young_mod = 400.0;
+        ImGui::InputDouble("Young's Modulus", &young_mod);
+        static double poisson = 0.49;
+        ImGui::InputDouble("Poisson's Ratio", &poisson);
+        if (ImGui::Button("Calculate Lame Parameters"))
+        {
+            double lam, mu;
+            CalculateLameParameters(young_mod, poisson, lam, mu);
+            std::cout << "lam = " << lam << ", mu = " << mu << std::endl;
+            auto mpm_pc = comp_graph->layers.front().point_cloud;
+            for (size_t i = 0; i < mpm_pc->points.size(); i++) {
+                mpm_pc->points[i].lam = lam;
+                mpm_pc->points[i].mu = mu;
             }
         }
 
@@ -368,6 +395,8 @@ void optimizationCallback()
             auto point_positions = comp_graph->layers[layer].point_cloud->GetPointPositions();
             ps_point_cloud->updatePointPositions(point_positions);
         }
+
+        
 
 
         if (!comp_graph)

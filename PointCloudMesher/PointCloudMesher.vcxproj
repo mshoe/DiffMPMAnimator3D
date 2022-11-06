@@ -133,7 +133,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="libigl_tutorial_715.cpp" />
     <ClCompile Include="PointCloudMesher.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,9 +154,6 @@
     <ProjectReference Include="..\DiffMPMLib3D\DiffMPMLib3D.vcxproj">
       <Project>{479b4f0e-112f-420e-ad2a-d6e49cec55ee}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="libigl_tutorial_715.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

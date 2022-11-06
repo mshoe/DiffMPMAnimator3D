@@ -17,24 +17,27 @@
 #include <iostream>
 #include <array>
 
-typedef Eigen::Vector3d Vec3;
-typedef Eigen::Matrix3d Mat3;
+namespace DiffMPMLib3D {
 
-inline double InnerProduct(const Mat3& A, const Mat3& B)
-{
-	double ret = 0.0;
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			ret += A(i, j) * B(i, j);
+	typedef Eigen::Vector3d Vec3;
+	typedef Eigen::Matrix3d Mat3;
+
+	inline double InnerProduct(const Mat3& A, const Mat3& B)
+	{
+		double ret = 0.0;
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 3; j++) {
+				ret += A(i, j) * B(i, j);
+			}
 		}
+		return ret;
 	}
-	return ret;
-}
 
-inline Mat3 CofactorMatrix(const Mat3& A)
-{
-	// https://en.wikipedia.org/wiki/Adjugate_matrix
-	return A.adjoint().transpose();
+	inline Mat3 CofactorMatrix(const Mat3& A)
+	{
+		// https://en.wikipedia.org/wiki/Adjugate_matrix
+		return A.adjoint().transpose();
+	}
 }
 
 #endif //PCH_H

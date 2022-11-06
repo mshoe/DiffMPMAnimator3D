@@ -3,7 +3,7 @@
 #include "igl/point_mesh_squared_distance.h"
 #include "igl/signed_distance.h"
 
-std::vector<Vec3> GeometryLoading::GeneratePointCloudFromWatertightTriangleMesh(
+std::vector<DiffMPMLib3D::Vec3> DiffMPMLib3D::GeometryLoading::GeneratePointCloudFromWatertightTriangleMesh(
     const Eigen::MatrixXd& V, 
     const Eigen::MatrixXi& F,
     Vec3 min_point,

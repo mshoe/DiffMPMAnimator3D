@@ -2,14 +2,14 @@
 #include "PointCloud.h"
 #include <fstream>
 
-void PointCloud::ResetGradients()
+void DiffMPMLib3D::PointCloud::ResetGradients()
 {
 	for (size_t p = 0; p < points.size(); p++) {
 		points[p].ResetGradients();
 	}
 }
 
-double PointCloud::Compute_dLdF_Norm()
+double DiffMPMLib3D::PointCloud::Compute_dLdF_Norm()
 {
 	double norm = 0.0;
 	for (MaterialPoint& mp : points) {
@@ -19,7 +19,7 @@ double PointCloud::Compute_dLdF_Norm()
 	return norm;
 }
 
-void PointCloud::Descend_dLdF(double alpha, double gradient_norm)
+void DiffMPMLib3D::PointCloud::Descend_dLdF(double alpha, double gradient_norm)
 {
 	for (MaterialPoint& mp : points) 
 	{
@@ -28,7 +28,12 @@ void PointCloud::Descend_dLdF(double alpha, double gradient_norm)
 	}
 }
 
-void PointCloud::WriteToOBJ(std::string obj_path)
+void DiffMPMLib3D::PointCloud::RemovePoint(size_t point_index)
+{
+	points.erase(points.begin()+point_index);
+}
+
+void DiffMPMLib3D::PointCloud::WriteToOBJ(std::string obj_path)
 {
 	std::ofstream ofs;
 	ofs.open(obj_path);
@@ -41,7 +46,7 @@ void PointCloud::WriteToOBJ(std::string obj_path)
 	ofs.close();
 }
 
-std::vector<Vec3> PointCloud::GetPointPositions() const
+std::vector<DiffMPMLib3D::Vec3> DiffMPMLib3D::PointCloud::GetPointPositions() const
 {
 	std::vector<Vec3> ret;
 	ret.resize(points.size());

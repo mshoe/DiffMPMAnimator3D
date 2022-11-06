@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Grid.h"
 
-Grid::Grid(int _dim_x, int _dim_y, int _dim_z, double _dx, Vec3 _min_point)
+DiffMPMLib3D::Grid::Grid(int _dim_x, int _dim_y, int _dim_z, double _dx, Vec3 _min_point)
 	: dim_x(_dim_x), dim_y(_dim_y), dim_z(_dim_z), dx(_dx), min_point(_min_point)
 {
 	nodes = std::vector<std::vector<std::vector<GridNode>>>();
@@ -23,7 +23,7 @@ Grid::Grid(int _dim_x, int _dim_y, int _dim_z, double _dx, Vec3 _min_point)
 	std::cout << "generated grid of size: " << total_bytes << " KB" << std::endl;
 }
 
-Grid::Grid(const Grid& grid)
+DiffMPMLib3D::Grid::Grid(const Grid& grid)
 {
 	dim_x = grid.dim_x;
 	dim_y = grid.dim_y;
@@ -33,7 +33,7 @@ Grid::Grid(const Grid& grid)
 	nodes = grid.nodes;
 }
 
-std::vector<std::reference_wrapper<GridNode>> Grid::QueryPoint_CubicBSpline(Vec3 point, std::vector<std::array<int, 3>>* indices)
+std::vector<std::reference_wrapper<DiffMPMLib3D::GridNode>> DiffMPMLib3D::Grid::QueryPoint_CubicBSpline(Vec3 point, std::vector<std::array<int, 3>>* indices)
 {
 	/* 
 	* Returns all the nodes which are within interpolation range of the point position
@@ -75,7 +75,7 @@ std::vector<std::reference_wrapper<GridNode>> Grid::QueryPoint_CubicBSpline(Vec3
 	return ret;
 }
 
-std::vector<std::reference_wrapper<const GridNode>> Grid::QueryPointConst_CubicBSpline(Vec3 point, std::vector<std::array<int, 3>>* indices) const
+std::vector<std::reference_wrapper<const DiffMPMLib3D::GridNode>> DiffMPMLib3D::Grid::QueryPointConst_CubicBSpline(Vec3 point, std::vector<std::array<int, 3>>* indices) const
 {
 	/*
 	* Returns all the nodes which are within interpolation range of the point position
@@ -117,7 +117,7 @@ std::vector<std::reference_wrapper<const GridNode>> Grid::QueryPointConst_CubicB
 	return ret;
 }
 
-std::vector<Vec3> Grid::GetNodePositions() const
+std::vector<DiffMPMLib3D::Vec3> DiffMPMLib3D::Grid::GetNodePositions() const
 {
 	std::vector<Vec3> ret;
 	for (int i = 0; i < dim_x; i++) {
@@ -130,7 +130,7 @@ std::vector<Vec3> Grid::GetNodePositions() const
 	return ret;
 }
 
-std::vector<double> Grid::GetNodeMasses() const
+std::vector<double> DiffMPMLib3D::Grid::GetNodeMasses() const
 {
 	std::vector<double> ret;
 	for (int i = 0; i < dim_x; i++) {
@@ -143,7 +143,7 @@ std::vector<double> Grid::GetNodeMasses() const
 	return ret;
 }
 
-std::vector<Vec3> Grid::GetNodeVelocities() const
+std::vector<DiffMPMLib3D::Vec3> DiffMPMLib3D::Grid::GetNodeVelocities() const
 {
 	std::vector<Vec3> ret;
 	for (int i = 0; i < dim_x; i++) {
@@ -156,7 +156,7 @@ std::vector<Vec3> Grid::GetNodeVelocities() const
 	return ret;
 }
 
-void Grid::GetMassSDF(Eigen::MatrixXd& GV, Eigen::VectorXd& Gf) const
+void DiffMPMLib3D::Grid::GetMassSDF(Eigen::MatrixXd& GV, Eigen::VectorXd& Gf) const
 {
 	GV.resize(dim_x * dim_y * dim_z, 3);
 	Gf.resize(dim_x * dim_y * dim_z);
@@ -174,7 +174,7 @@ void Grid::GetMassSDF(Eigen::MatrixXd& GV, Eigen::VectorXd& Gf) const
 	return;
 }
 
-void Grid::ResetGradients()
+void DiffMPMLib3D::Grid::ResetGradients()
 {
 	for (int i = 0; i < dim_x; i++) {
 		for (int j = 0; j < dim_y; j++) {

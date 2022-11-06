@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "GridNode.h"
 
-void GridNode::ResetGradients()
+void DiffMPMLib3D::GridNode::ResetGradients()
 {
 	dLdx.setZero();
 	dLdv.setZero();

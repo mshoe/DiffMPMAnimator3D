@@ -3,7 +3,7 @@
 #include "qrsvd/ImplicitQRSVD.h"
 #include <unsupported/Eigen/KroneckerProduct>
 
-Tensor3x3x3x3 d_JFit_dF_FD(const Mat3& F)
+DiffMPMLib3D::Tensor3x3x3x3 DiffMPMLib3D::d_JFit_dF_FD(const Mat3& F)
 {
     // return d (J*Fit)_ab / d F_ij
 
@@ -56,7 +56,7 @@ Tensor3x3x3x3 d_JFit_dF_FD(const Mat3& F)
     return ret;
 }
 
-Mat3 PK_FixedCorotatedElasticity(const Mat3& F, double lam, double mu)
+DiffMPMLib3D::Mat3 DiffMPMLib3D::PK_FixedCorotatedElasticity(const Mat3& F, double lam, double mu)
 {
     Mat3 R, S;
     JIXIE::polarDecomposition(F, R, S);
@@ -66,7 +66,7 @@ Mat3 PK_FixedCorotatedElasticity(const Mat3& F, double lam, double mu)
     return 2.0 * mu * (F - R) + lam * (J - 1.0) * J * F.inverse().transpose();
 }
 
-Mat3 d2_FCE_psi_dF2_mult_by_dF(const Mat3& F, double lam, double mu, const Mat3& dF)
+DiffMPMLib3D::Mat3 DiffMPMLib3D::d2_FCE_psi_dF2_mult_by_dF(const Mat3& F, double lam, double mu, const Mat3& dF)
 {
     /*
     * Polar decomp: F = R S
@@ -220,7 +220,7 @@ Mat3 d2_FCE_psi_dF2_mult_by_dF(const Mat3& F, double lam, double mu, const Mat3&
 }
 
 
-Tensor3x3x3x3 d2_FCE_psi_dF2_FD(const Mat3& F, double lam, double mu)
+DiffMPMLib3D::Tensor3x3x3x3 DiffMPMLib3D::d2_FCE_psi_dF2_FD(const Mat3& F, double lam, double mu)
 {
     // Return tensor of indices: a, b, i, j,  for dP[a][b] / dF[i][j]
 
@@ -254,7 +254,7 @@ Tensor3x3x3x3 d2_FCE_psi_dF2_FD(const Mat3& F, double lam, double mu)
     return ret;
 }
 
-Tensor3x3x3x3 d2_FCE_psi_dF2_mult_trick(const Mat3& F, double lam, double mu)
+DiffMPMLib3D::Tensor3x3x3x3 DiffMPMLib3D::d2_FCE_psi_dF2_mult_trick(const Mat3& F, double lam, double mu)
 {
     Tensor3x3x3x3 ret;
     Mat3 E;// = Mat3::Identity();
@@ -266,4 +266,10 @@ Tensor3x3x3x3 d2_FCE_psi_dF2_mult_trick(const Mat3& F, double lam, double mu)
         }
     }
     return ret;
+}
+
+void DiffMPMLib3D::CalculateLameParameters(double young_mod, double poisson, double& lam, double& mu)
+{
+    lam = young_mod * poisson / ((1.0 + poisson) * (1.0 - 2.0 * poisson));
+    mu = young_mod / (2.0 + 2.0 * poisson);
 }

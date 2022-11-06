@@ -7,6 +7,7 @@
 #include <fstream>
 
 #include "ForwardSimulation.h"
+using namespace DiffMPMLib3D;
 //#include "igl/dual_contouring.h"
 #include "Eigen/Dense"
 
@@ -18,8 +19,10 @@
 #include <igl/writeOBJ.h>
 #include <igl/per_vertex_normals.h>
 
-std::string input_path = "videos\\experiment 004\\data\\";
-std::string output_path = "videos\\experiment 004\\meshes\\";
+int num_objs = 600;
+
+std::string input_path = "experiments\\003 sphere to spot\\output\\";
+std::string output_path = "experiments\\003 sphere to spot\\meshes\\";
 
 polyscope::PointCloud* ps_point_cloud = nullptr;
 polyscope::SurfaceMesh* ps_surface_mesh = nullptr;
@@ -110,7 +113,7 @@ void mesherCallback()
     if (ImGui::Button("Generate meshes from point clouds"))
     {
         polyscope::SurfaceMesh* temp_surf = nullptr;
-        for (int i = 0; i < 600; i++) 
+        for (int i = 0; i < num_objs; i++)
         {
             
             std::string pc_path = input_path + "mpm_points_" + LeadingZerosNumberStr(i, 6) + ".obj";
@@ -135,16 +138,40 @@ void mesherCallback()
             temp_surf->setSurfaceColor(glm::vec3(1.0, 0.5, 0.5));
             temp_surf->setSmoothShade(true);
 
-            polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::None;
+            polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::ShadowOnly;
 
             polyscope::screenshot(ss_path, false);
+        }
+    }
+
+    if (ImGui::Button("Generate screenshots from point clouds"))
+    {
+        for (int i = 0; i < num_objs; i++)
+        {
+
+            std::string pc_path = input_path + "mpm_points_" + LeadingZerosNumberStr(i, 6) + ".obj";
+            std::string ss_path = output_path + "screenshot_pointcloud_" + LeadingZerosNumberStr(i, 6) + ".png";
+
+            std::cout << "loading " << pc_path << std::endl;
+
+            LoadPointCloud(pc_path, points);
+            auto pc = polyscope::registerPointCloud("curr cloud", points);
+            
+            pc->setPointRadius(0.02683);
+            pc->setPointColor(glm::vec3(0.110, 0.388, 0.890));
+
+            polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::ShadowOnly;
+
+            polyscope::screenshot(ss_path, false);
+
+            polyscope::removePointCloud("curr cloud");
         }
     }
 
 
     if (ImGui::Button("load point cloud .obj"))
     {
-        LoadPointCloud("videos\\experiment 004\\data\\mpm_points_000599.obj", points);
+        LoadPointCloud(input_path + "mpm_points_000599.obj", points);
 
         if (ps_point_cloud != nullptr) {
             polyscope::removePointCloud("point cloud");

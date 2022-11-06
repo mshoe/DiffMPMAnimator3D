@@ -3,7 +3,7 @@
 #include "Elasticity.h"
 #include "Interpolation.h"
 
-void Back_Timestep(CompGraphLayer& layer_nplus1, CompGraphLayer& layer_n, double drag, double dt)
+void DiffMPMLib3D::Back_Timestep(CompGraphLayer& layer_nplus1, CompGraphLayer& layer_n, double drag, double dt)
 {
 	
 	const PointCloud& pc = *layer_nplus1.point_cloud;

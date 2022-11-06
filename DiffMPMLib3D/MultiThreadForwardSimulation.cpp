@@ -4,7 +4,7 @@
 #include <thread>
 #include <functional>
 
-void MultiThreadMPM::ForwardTimeStep(PointCloud& next_point_cloud, PointCloud& curr_point_cloud, Grid& main_grid,
+void DiffMPMLib3D::MultiThreadMPM::ForwardTimeStep(PointCloud& next_point_cloud, PointCloud& curr_point_cloud, Grid& main_grid,
 	std::vector<std::shared_ptr<Grid>>& proxy_grids, double dt, double drag, Vec3 f_ext)
 {
 	size_t num_threads = proxy_grids.size();
@@ -151,7 +151,7 @@ void MultiThreadMPM::ForwardTimeStep(PointCloud& next_point_cloud, PointCloud& c
 	parallel_threads.clear();
 }
 
-void MultiThreadMPM::Multi_P_op_1(std::vector<MaterialPoint>& points, size_t p_ind_start, size_t num_p)
+void DiffMPMLib3D::MultiThreadMPM::Multi_P_op_1(std::vector<MaterialPoint>& points, size_t p_ind_start, size_t num_p)
 {
 	for (size_t p = p_ind_start; p < p_ind_start + num_p; p++) {
 
@@ -163,7 +163,7 @@ void MultiThreadMPM::Multi_P_op_1(std::vector<MaterialPoint>& points, size_t p_i
 }
 
 
-void MultiThreadMPM::Multi_P2G(const std::vector<MaterialPoint>& points, Grid& proxy_grid, size_t p_ind_start, size_t num_p, double dt, double drag)
+void DiffMPMLib3D::MultiThreadMPM::Multi_P2G(const std::vector<MaterialPoint>& points, Grid& proxy_grid, size_t p_ind_start, size_t num_p, double dt, double drag)
 {
 	for (size_t p = p_ind_start; p < p_ind_start + num_p; p++) {
 
@@ -174,7 +174,7 @@ void MultiThreadMPM::Multi_P2G(const std::vector<MaterialPoint>& points, Grid& p
 	}
 }
 
-void MultiThreadMPM::Multi_G_op(const std::vector<std::shared_ptr<Grid>>& proxy_grids, Grid& main_grid,
+void DiffMPMLib3D::MultiThreadMPM::Multi_G_op(const std::vector<std::shared_ptr<Grid>>& proxy_grids, Grid& main_grid,
 	size_t block_start_i, size_t block_start_j, size_t block_start_k,
 	size_t block_size_i, size_t block_size_j, size_t block_size_k,
 	double dt, Vec3 f_ext)
@@ -199,7 +199,7 @@ void MultiThreadMPM::Multi_G_op(const std::vector<std::shared_ptr<Grid>>& proxy_
 	}
 }
 
-void MultiThreadMPM::Multi_G2P(std::vector<MaterialPoint>& next_points, const std::vector<MaterialPoint>& curr_points, const Grid& main_grid, 
+void DiffMPMLib3D::MultiThreadMPM::Multi_G2P(std::vector<MaterialPoint>& next_points, const std::vector<MaterialPoint>& curr_points, const Grid& main_grid,
 	size_t p_ind_start, size_t num_p)
 {
 	for (size_t p = p_ind_start; p < p_ind_start + num_p; p++) 
@@ -211,7 +211,7 @@ void MultiThreadMPM::Multi_G2P(std::vector<MaterialPoint>& next_points, const st
 	}
 }
 
-void MultiThreadMPM::Multi_P_op_2(std::vector<MaterialPoint>& next_points, const std::vector<MaterialPoint>& curr_points, size_t p_ind_start, size_t num_p, double dt)
+void DiffMPMLib3D::MultiThreadMPM::Multi_P_op_2(std::vector<MaterialPoint>& next_points, const std::vector<MaterialPoint>& curr_points, size_t p_ind_start, size_t num_p, double dt)
 {
 	for (size_t p = p_ind_start; p < p_ind_start + num_p; p++)
 	{
