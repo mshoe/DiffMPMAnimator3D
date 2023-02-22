@@ -1,10 +1,12 @@
 #pragma once
 #include "pch.h"
-
+#include <fstream>
 namespace DiffMPMLib3D {
 	struct MaterialPoint
 	{
 		void ResetGradients();
+		void WriteEntirePointToFile(std::ofstream& ofs);
+		void ReadEntirePointFromFile(std::ifstream& ifs);
 
 		// stores every intermediate value in computation graph
 		Vec3 x = Vec3::Zero();

@@ -60,9 +60,6 @@
     <ClInclude Include="MultiThreadForwardSimulation.h">
       <Filter>mpm</Filter>
     </ClInclude>
-    <ClInclude Include="PPLForwardSimulation.h">
-      <Filter>mpm</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">

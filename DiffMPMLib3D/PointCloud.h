@@ -12,6 +12,9 @@ namespace DiffMPMLib3D {
 		void RemovePoint(size_t point_index);
 
 		void WriteToOBJ(std::string obj_path); // just writes vertex positions
+		void WriteMassVelocityDefgradsToFile(std::string file_path);
+		void WriteEntirePointCloudToFile(std::string file_path);
+		void ReadEntirePointCloudFromFile(std::string file_path);
 
 		std::vector<Vec3> GetPointPositions() const;
 		std::vector<MaterialPoint> points;

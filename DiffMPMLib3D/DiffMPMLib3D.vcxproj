@@ -163,7 +163,6 @@
     <ClInclude Include="MaterialPoint.h" />
     <ClInclude Include="GridNode.h" />
     <ClInclude Include="MultiThreadForwardSimulation.h" />
-    <ClInclude Include="PPLForwardSimulation.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PointCloud.h" />
     <ClInclude Include="Tensor3x3x3x3.h" />

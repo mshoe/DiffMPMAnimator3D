@@ -270,9 +270,16 @@ void optimizationCallback()
         static int max_ls_iters = 15;
         static double initial_alpha = 0.1;
         static double gd_tol = 1e-3;
-        ImGui::InputInt("number of temporal optimizations", &num_animations);
-        ImGui::InputInt("number of timesteps", &num_timesteps);
+        ImGui::InputDouble("dt", &scene_input.dt);
+        ImGui::InputInt("number of episodes", &num_animations);
+        ImGui::InputInt("number of timesteps per episode", &num_timesteps);
+        std::string total_time_str = "Animation duration = " + std::to_string(scene_input.dt * num_timesteps * num_animations) + " seconds";
+        ImGui::Text(total_time_str.c_str());
+
+
         ImGui::InputInt("control stride", &control_stride);
+        std::string control_freq_str = "Control frequency = " + std::to_string(1.0 / ((double)control_stride * scene_input.dt)) + " Hz";
+        ImGui::Text(control_freq_str.c_str());
         ImGui::InputInt("max gradient descent iterations (per control timestep)", &max_gd_iters);
         ImGui::InputInt("max line search iterations (per gradient descent iteration)", &max_ls_iters);
         ImGui::InputDouble("Initial line search step size", &initial_alpha);
@@ -371,9 +378,9 @@ void optimizationCallback()
                     std::string png_output_path = mpm_output_folder + "screenshot_" + number_str + ".png";
                     polyscope::screenshot(png_output_path, false);
 
-                    // SAVE POINT POSITIONS TO OBJ FILE
-                    std::string mpm_output_path = mpm_output_folder + "mpm_points_" + number_str + ".obj";
-                    comp_graph->layers[t].point_cloud->WriteToOBJ(mpm_output_path);
+                    // SAVE POINT DATA TO FILE
+                    std::string mpm_output_path = mpm_output_folder + "mpm_points_" + number_str + ".mpm";
+                    comp_graph->layers[t].point_cloud->WriteEntirePointCloudToFile(mpm_output_path);
                 }
 
                 auto curr_end_clock = std::chrono::steady_clock::now();
@@ -428,5 +435,6 @@ int main()
 
     // Pass control flow to polyscope, displaying the interactive window.
     // Function will return when user closes the window.
+    polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::ShadowOnly;
     polyscope::show();
 }

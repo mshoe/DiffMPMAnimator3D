@@ -46,6 +46,77 @@ void DiffMPMLib3D::PointCloud::WriteToOBJ(std::string obj_path)
 	ofs.close();
 }
 
+void DiffMPMLib3D::PointCloud::WriteMassVelocityDefgradsToFile(std::string file_path)
+{
+	std::ofstream ofs;
+	ofs.open(file_path);
+
+	if (ofs.good()) {
+		for (size_t v = 0; v < points.size(); v++) {
+			ofs << "x " << points[v].x[0] << " " << points[v].x[1] << " " << points[v].x[2] << "\n";
+			ofs << "v " << points[v].v[0] << " " << points[v].v[1] << " " << points[v].v[2] << "\n";
+
+
+			// I don't plan on doing any visualizations that actually use the 3x3 deformation gradients,
+			// just maybe their elastic energy and their magnitudes?
+
+			ofs << "F";
+			for (size_t i = 0; i < 9; i++) {
+				ofs << " " << points[v].F(i);
+			}
+			ofs << "\n";
+			ofs << "dFc";
+			for (size_t i = 0; i < 9; i++) {
+				ofs << " " << points[v].dFc(i);
+			}
+			ofs << "\n";
+			ofs << "dLdF";
+			for (size_t i = 0; i < 9; i++) {
+				ofs << " " << points[v].dLdF(i);
+			}
+			ofs << "\n";
+		}
+	}
+	ofs.close();
+}
+
+void DiffMPMLib3D::PointCloud::WriteEntirePointCloudToFile(std::string file_path)
+{
+	// not sure how much I want to invest into this codebase in the future, so just doing the easy thing here
+	std::ofstream ofs;
+	ofs.open(file_path);
+
+	if (ofs.good()) {
+		// first line: number of points
+		ofs << points.size() << std::endl;
+		for (size_t v = 0; v < points.size(); v++) {
+			points[v].WriteEntirePointToFile(ofs);
+		}
+	}
+	ofs.close();
+}
+
+void DiffMPMLib3D::PointCloud::ReadEntirePointCloudFromFile(std::string file_path)
+{
+	std::ifstream ifs;
+	ifs.open(file_path);
+
+	if (ifs.good()) {
+		// first line: number of points
+		size_t num_points;
+		ifs >> num_points;
+
+		points.resize(num_points);
+
+		for (size_t v = 0; v < num_points; v++) {
+			points[v].ReadEntirePointFromFile(ifs);
+		}
+	}
+
+	ifs.close();
+}
+
+
 std::vector<DiffMPMLib3D::Vec3> DiffMPMLib3D::PointCloud::GetPointPositions() const
 {
 	std::vector<Vec3> ret;

@@ -9,8 +9,11 @@ using namespace DiffMPMLib3D;
 
 struct SceneInput
 {
-	std::string mpm_input_mesh_path = "experiments\\007 pikachu no tail\\input\\icosphere.obj";
-	std::string mpm_target_mesh_path = "experiments\\007 pikachu no tail\\input\\pikachu.obj";
+	// TODO: MAKE A FILE FORMAT FOR THIS SO I DON'T HAVE TO CHANGE CODE EACH TIME
+
+
+	std::string mpm_input_mesh_path = "experiments\\big_sca_demo\\input\\bob.obj";
+	std::string mpm_target_mesh_path = "experiments\\big_sca_demo\\input\\spot.obj";
 
 
 	double grid_dx = 1.0; // TODO: make this 1.0 and use scaled up meshes
@@ -27,7 +30,7 @@ struct SceneInput
 	//double mu = 100.0;
 	double p_density = 40.0;// *5.0;
 
-	double dt = 1.0 / 120.0;// / 100.0;
+	double dt = 1.0 / 120.0;
 	double drag = 0.5;
 	//Vec3 f_ext = Vec3(0.0, 0.0, -9.81);
 	Vec3 f_ext = Vec3(0.0, 0.0, 0.0);

@@ -31,6 +31,7 @@ bool LoadMPMPointCloudFromObj(
     std::cout << obj_path << "'s min point is: " << min_point.transpose() << std::endl;
 
     std::cout << "generating point cloud..." << std::endl;
+    
     std::vector<Vec3> points = GeometryLoading::GeneratePointCloudFromWatertightTriangleMesh(V, F, min_point, max_point, point_dx);
 
 
