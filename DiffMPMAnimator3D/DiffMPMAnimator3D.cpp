@@ -21,6 +21,8 @@ using namespace DiffMPMLib3D;
 
 #include "cereal/archives/json.hpp"
 #include "MXImGuiTools.h"
+#include "MPMPointCloudVisualization.h"
+#include "MaterialPointImGui.h"
 
 unsigned GetNumberOfDigits(unsigned i)
 {
@@ -182,38 +184,19 @@ void RealTimeMPMImGUI()
     ImGui::Text(ss.str().c_str());
 
 
+
     if (ImGui::TreeNode("mp properties")) {
-        ss.str(std::string());
-        ss << mp.x.transpose();
-        ImGui::Text(std::string("x = " + ss.str()).c_str());
-
-        ss.str(std::string());
-        ss << mp.v.transpose();
-        ImGui::Text(std::string("v = " + ss.str()).c_str());
-
-        ss.str(std::string());
-        ss << mp.F;
-        ImGui::Text(std::string("F = \n" + ss.str()).c_str());
-
-        ss.str(std::string());
-        ss << mp.P;
-        ImGui::Text(std::string("P = \n" + ss.str()).c_str());
-
-        ss.str(std::string());
-        ss << mp.C;
-        ImGui::Text(std::string("C = \n" + ss.str()).c_str());
-
-
-
-        ss.str(std::string());
-        ss << mp.m;
-        ImGui::Text(std::string("m = " + ss.str()).c_str());
-
-        ss.str(std::string());
-        ss << mp.vol;
-        ImGui::Text(std::string("vol = " + ss.str()).c_str());
-
+        
+        MaterialPointDisplayImGui(mp);
         ImGui::TreePop();
+    }
+
+    if (ImGui::Button("Set initial deformation gradients to identity"))
+    {
+        for (size_t i = 0; i < mpm_point_cloud->points.size(); i++) {
+            mpm_point_cloud->points[i].F.setIdentity();
+            mpm_point_cloud->points[i].dFc.setZero();
+        }
     }
 }
 
@@ -258,10 +241,12 @@ void Optimization()
 
     if (ImGui::TreeNode("Optimization Setup"))
     {
+        static std::string input_json = "input.json";
+        ImGui::InputText("Input json path", &input_json);
         if (ImGui::Button("Load Optimization Input from JSON"))
         {
             std::ifstream ifs;
-            ifs.open("optimization_input_test.json");
+            ifs.open(input_json);
 
             if (ifs.good()) {
                 cereal::JSONInputArchive iarchive(ifs); // Create an input archive
@@ -321,10 +306,61 @@ void Optimization()
 
     if (ImGui::TreeNode("Test Buttons"))
     {
-        if (ImGui::Button("Test binary point cloud file writing"))
+        if (ImGui::Button("Test point cloud file writing and reading"))
         {
-            comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToBinaryFile("test_binary.mpm");
+            comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToBinaryFile("test_binary.mpmbin");
             comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToFile("test_text.mpm");
+
+
+            auto mpm_pc_read_from_binary = std::make_shared<PointCloud>();
+            mpm_pc_read_from_binary->ReadEntirePointCloudFromBinaryFile("test_binary.mpmbin");
+
+            if (comp_graph->layers[layer].point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_binary)) {
+                std::cout << "binary writing/reading successful" << std::endl;
+            }
+
+            auto mpm_pc_read_from_text = std::make_shared<PointCloud>();
+            mpm_pc_read_from_text->ReadEntirePointCloudFromFile("test_text.mpm");
+            if (comp_graph->layers[layer].point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_text)) {
+                std::cout << "text writing/reading successful" << std::endl;
+            }
+
+        }
+
+        //if (ImGui::Button("Set initial deformation gradients"))
+        //{
+
+        //    auto mpm_pc = comp_graph->layers.front().point_cloud;
+        //    for (size_t i = 0; i < mpm_pc->points.size(); i++) {
+        //        // ROTATION MATRIX
+        //        double a = 45.0 * 0.0174533;
+        //        Mat3 F;
+        //        F << 1, 0, 0, 0, cos(a), -sin(a), 0, sin(a), cos(a);
+
+        //        //Mat3 F;
+        //        //F.setIdentity();
+        //        F *= 0.8;
+        //        mpm_pc->points[i].F = F;
+        //    }
+        //}
+
+        if (ImGui::Button("Set initial deformation gradients to identity"))
+        {
+
+            auto mpm_pc = comp_graph->layers.front().point_cloud;
+            for (size_t i = 0; i < mpm_pc->points.size(); i++) {
+                mpm_pc->points[i].F.setIdentity();
+                mpm_pc->points[i].dFc.setZero();
+            }
+        }
+
+        if (ImGui::Button("Set initial dFc to zero"))
+        {
+
+            auto mpm_pc = comp_graph->layers.front().point_cloud;
+            for (size_t i = 0; i < mpm_pc->points.size(); i++) {
+                mpm_pc->points[i].dFc.setZero();
+            }
         }
         ImGui::TreePop();
     }
@@ -332,6 +368,15 @@ void Optimization()
 
     static int point_index = 0;
     ImGui::InputInt("point index", &point_index);
+    if (point_index < 0) point_index = 0;
+
+    if (ImGui::TreeNode("View Point Properties"))
+    {
+        ImGui::PushItemWidth(300.f);
+        MaterialPointImGui(comp_graph->layers.begin()->point_cloud->points[point_index]);
+        ImGui::PopItemWidth();
+    }
+
     if (ImGui::Button("Remove point")) {
         comp_graph->layers.begin()->point_cloud->RemovePoint(point_index);
         auto point_positions = comp_graph->layers.begin()->point_cloud->GetPointPositions();
@@ -341,22 +386,7 @@ void Optimization()
     }
 
 
-    if (ImGui::Button("Set initial deformation gradients"))
-    {
-
-        auto mpm_pc = comp_graph->layers.front().point_cloud;
-        for (size_t i = 0; i < mpm_pc->points.size(); i++) {
-            // ROTATION MATRIX
-            double a = 45.0 * 0.0174533;
-            Mat3 F;
-            F << 1, 0, 0, 0, cos(a), -sin(a), 0, sin(a), cos(a);
-
-            //Mat3 F;
-            //F.setIdentity();
-            F *= 0.8;
-            mpm_pc->points[i].F = F;
-        }
-    }
+    
 
     static double young_mod = 400.0;
     ImGui::InputDouble("Young's Modulus", &young_mod);
@@ -387,7 +417,52 @@ void Optimization()
             auto curr_begin_clock = std::chrono::steady_clock::now();
             std::cout << "**********OPTIMIZING ANIMATION INTERVAL: " << i << "************" << std::endl;
             comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
+
             comp_graph->layers.resize(1);
+
+            // TEST CODE (was used to catch a very nasty bug when loading mpm data)
+            //{
+            //    comp_graph->layers.back().point_cloud->WriteEntirePointCloudToBinaryFile("test_binary.mpmbin");
+            //    comp_graph->layers.back().point_cloud->WriteEntirePointCloudToFile("test_text.mpm");
+
+
+            //    auto mpm_pc_read_from_binary = std::make_shared<PointCloud>();
+            //    mpm_pc_read_from_binary->ReadEntirePointCloudFromBinaryFile("test_binary.mpmbin");
+
+            //    if (comp_graph->layers.back().point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_binary)) {
+            //        std::cout << "binary writing/reading successful" << std::endl;
+            //    }
+
+            //    auto mpm_pc_read_from_text = std::make_shared<PointCloud>();
+            //    mpm_pc_read_from_text->ReadEntirePointCloudFromFile("test_text.mpm");
+            //    if (comp_graph->layers.back().point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_text)) {
+            //        std::cout << "text writing/reading successful" << std::endl;
+            //        std::cout << "setting first layer point cloud to point cloud read from text" << std::endl;
+            //        comp_graph->layers.front().point_cloud = mpm_pc_read_from_text;
+
+            //        /*std::cout << "reloading comp_graph using point cloud text data" << std::endl;
+            //        opt_input.mpm_input_mesh_path = "test_text.mpm";
+            //        LoadCompGraph(opt_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
+
+            //        if (comp_graph->layers.front().point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_text))
+            //        {
+            //            std::cout << "point cloud is still the same" << std::endl;
+            //        }*/
+            //    }
+            //    else {
+            //        std::cout << "error reading point cloud from text" << std::endl;
+            //        break;
+            //    }
+
+            //    std::cout << "reseting grid values (even though it shouldn't matter since this should already be handled later?)" << std::endl;
+            //    comp_graph->layers.front().grid->ResetValues();
+            //    comp_graph->layers.front().grid->ResetGradients();
+
+            //    std::cout << "reseting point cloud gradients (even though it shouldn't matter since this should already be handled later?)" << std::endl;
+            //    comp_graph->layers.front().point_cloud->ResetGradients();
+
+            //    
+            //}
 
 
             comp_graph->OptimizeDefGradControlSequence(
@@ -412,8 +487,8 @@ void Optimization()
                 ps_point_cloud->updatePointPositions(point_positions);
 
                 // VISUALIZE ELASTIC ENERGIES
-                auto elastic_energies = comp_graph->layers[t].point_cloud->GetPointElasticEnergies();
-                ps_point_cloud->addScalarQuantity("elastic energies", elastic_energies);
+                /*auto elastic_energies = comp_graph->layers[t].point_cloud->GetPointElasticEnergies();
+                ps_point_cloud->addScalarQuantity("elastic energies", elastic_energies);*/
 
 
                 std::string png_output_path = mpm_output_folder + "screenshot_" + number_str + ".png";
@@ -503,13 +578,48 @@ void menuCallback()
         if (ImGui::Button("Load point cloud"))
         {
             mpm_point_cloud = std::make_shared<PointCloud>();
-            mpm_point_cloud->ReadEntirePointCloudFromFile(pc_data_folder + pc_file);
-            auto positions = mpm_point_cloud->GetPointPositions();
-            ps_point_cloud = polyscope::registerPointCloud(PS_POINT_CLOUD_1, positions);
-            double point_dx = opt_input.grid_dx / (double)opt_input.points_per_cell_cuberoot;
-            ps_point_cloud->setPointRadius(point_dx / 50.0);
-            ps_point_cloud->setPointRenderMode(polyscope::PointRenderMode::Sphere);
+            if (mpm_point_cloud->ReadEntirePointCloudFromFile(pc_data_folder + pc_file))
+            {
+                auto positions = mpm_point_cloud->GetPointPositions();
+                ps_point_cloud = polyscope::registerPointCloud(PS_POINT_CLOUD_1, positions);
+                double point_dx = opt_input.grid_dx / (double)opt_input.points_per_cell_cuberoot;
+                ps_point_cloud->setPointRadius(point_dx / 50.0);
+                ps_point_cloud->setPointRenderMode(polyscope::PointRenderMode::Sphere);
+
+                UpdatePolyscopePointCloudProperties(&ps_point_cloud, mpm_point_cloud);
+
+                // Set specific properties
+                //ps_point_cloud->updatePointPositions(positions);
+                
+            }
         }
+
+        static std::string ss_folder = "experiments/big_sca_demo/output_bob_to_spot/screenshots/";
+        ImGui::InputText("Animation Screenshots Folder", &ss_folder);
+
+        static int num_frames = 1200;
+        ImGui::InputInt("number of frames", &num_frames);
+
+        if (ImGui::Button("Get screenshots of animation"))
+        {
+            for (size_t i = 0; i < num_frames; i++) {
+                std::string mpm_path = pc_data_folder + "mpm_points_" + LeadingZerosNumberStr(i, 6) + ".mpm";
+                std::string ss_path = ss_folder + "screenshot_pointcloud_" + LeadingZerosNumberStr(i, 6) + ".png";
+
+                if (mpm_point_cloud->ReadEntirePointCloudFromFile(mpm_path))
+                {
+                    UpdatePolyscopePointCloudProperties(&ps_point_cloud, mpm_point_cloud);
+
+                    polyscope::screenshot(ss_path, false);
+                    std::cout << "screenshotted: " << ss_path << std::endl;
+                }
+                else {
+                    std::cout << " no mpm data for file: " << mpm_path << std::endl;
+                    break;
+                }
+            }
+        }
+        
 
         ImGui::PopItemWidth();
         ImGui::TreePop();

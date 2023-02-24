@@ -4,3 +4,5 @@
 
 
 ../../ffmpeg.exe -framerate 60 -i meshes/screenshot_pointcloud_%06d.png polyscope_output2.mp4
+
+./ffmpeg.exe -framerate 60 -i experiments/big_sca_demo/output_bob_to_spot/screenshots/screenshot_pointcloud_%06d.png polyscope_output.mp4

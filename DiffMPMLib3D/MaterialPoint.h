@@ -11,6 +11,9 @@ namespace DiffMPMLib3D {
 		void WriteEntirePointToFile(std::ofstream& ofs);
 		void ReadEntirePointFromFile(std::ifstream& ifs);
 
+		bool IsEqualToOtherPoint(const MaterialPoint& other_mp) const;
+		void PrintMP() const;
+
 		// stores every intermediate value in computation graph
 		Vec3 x = Vec3::Zero();
 		Vec3 v = Vec3::Zero();
@@ -37,8 +40,9 @@ namespace DiffMPMLib3D {
 		Vec3 dLdv_next = Vec3::Zero();
 		Mat3 dLdC_next = Mat3::Zero();
 
-		double dLdm = 0.0;
-		double dLdvol = 0.0;
+		// these don't do anything, I don't know why I added them in
+		/*double dLdm = 0.0;
+		double dLdvol = 0.0;*/
 
 		template<class Archive>
 		void serialize(Archive& archive)

@@ -135,6 +135,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DiffMPMAnimator3D.cpp" />
+    <ClCompile Include="MaterialPointImGui.cpp" />
+    <ClCompile Include="MPMPointCloudVisualization.cpp" />
     <ClCompile Include="MPMPolyscope.cpp" />
     <ClCompile Include="MXImGuiTools.cpp" />
   </ItemGroup>
@@ -159,7 +161,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MaterialPointImGui.h" />
     <ClInclude Include="MPMPolyscope.h" />
+    <ClInclude Include="MPMPointCloudVisualization.h" />
     <ClInclude Include="MXImGuiTools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

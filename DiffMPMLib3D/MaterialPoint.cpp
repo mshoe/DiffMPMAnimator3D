@@ -12,8 +12,8 @@ void DiffMPMLib3D::MaterialPoint::ResetGradients()
 	dLdv_next.setZero();
 	dLdC_next.setZero();
 
-	dLdm = 0.0;
-	dLdvol = 0.0;
+	//dLdm = 0.0;
+	//dLdvol = 0.0;
 }
 
 void DiffMPMLib3D::MaterialPoint::WriteEntirePointToFile(std::ofstream& ofs)
@@ -51,4 +51,75 @@ void DiffMPMLib3D::MaterialPoint::ReadEntirePointFromFile(std::ifstream& ifs)
     ifs >> dLdx(0) >> dLdx(1) >> dLdx(2);
     ifs >> dLdv(0) >> dLdv(1) >> dLdv(2);
     ifs >> dLdF(0, 0) >> dLdF(0, 1) >> dLdF(0, 2) >> dLdF(1, 0) >> dLdF(1, 1) >> dLdF(1, 2) >> dLdF(2, 0) >> dLdF(2, 1) >> dLdF(2, 2);
+}
+
+bool DiffMPMLib3D::MaterialPoint::IsEqualToOtherPoint(const MaterialPoint& other_mp) const 
+{
+    if (x != other_mp.x)
+    {
+        std::cout << "Not equal x" << std::endl;
+        return false;
+    }
+
+    if (v != other_mp.v)
+    {
+        std::cout << "Not equal v" << std::endl;
+        return false;
+    }
+
+    if (F != other_mp.F)
+    {
+        std::cout << "Not equal F" << std::endl;
+        return false;
+    }
+
+    if (C != other_mp.C)
+    {
+        std::cout << "Not equal C" << std::endl;
+        return false;
+    }
+
+    if (P != other_mp.P) {
+        std::cout << "Not equal P" << std::endl;
+        return false;
+    }
+
+    if (m != other_mp.m) {
+        std::cout << "Not equal m" << std::endl;
+        return false;
+    }
+
+    if (vol != other_mp.vol) {
+        std::cout << "Not equal vol" << std::endl;
+        return false;
+    }
+
+    if (lam != other_mp.lam) {
+        std::cout << "Not equal lam" << std::endl;
+        return false;
+    }
+
+    if (mu != other_mp.mu) {
+        std::cout << "Not equal mu" << std::endl;
+        return false;
+    }
+
+    if (dFc != other_mp.dFc) {
+        std::cout << "Not equal dFc" << std::endl;
+    }
+    return true;
+}
+
+void DiffMPMLib3D::MaterialPoint::PrintMP() const
+{
+    std::cout << "x = " << x.transpose() << std::endl;
+    std::cout << "v = " << v.transpose() << std::endl;
+    std::cout << "F = " << std::endl << F << std::endl;
+    std::cout << "C = " << std::endl << C << std::endl;
+    std::cout << "P = " << std::endl << P << std::endl;
+    std::cout << "m = " << m << std::endl;
+    std::cout << "vol = " << vol << std::endl;
+    std::cout << "lam = " << lam << std::endl;
+    std::cout << "mu = " << mu << std::endl;
+    std::cout << "dFc = " << std::endl << dFc << std::endl;
 }

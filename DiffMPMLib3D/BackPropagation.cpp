@@ -91,7 +91,7 @@ void DiffMPMLib3D::Back_Timestep(CompGraphLayer& layer_nplus1, CompGraphLayer& l
 			mp_prev.dLdC += wgp * mp_prev.m * node.dLdp * dgp.transpose();
 
 			// dL / dm
-			mp_prev.dLdm += wgp * node.dLdm;
+			//mp_prev.dLdm += wgp * node.dLdm;
 
 			// dL / dx
 			// Note: this gradient also gets particle contributions, which will be added later
@@ -113,6 +113,6 @@ void DiffMPMLib3D::Back_Timestep(CompGraphLayer& layer_nplus1, CompGraphLayer& l
 		mp_prev.dLdF += d2_FCE_psi_dF2_mult_by_dF(mp_prev.F + mp_prev.dFc, mp_prev.lam, mp_prev.mu, mp_prev.dLdP);
 
 		mp_prev.dLdx += mp.dLdx;
-		mp_prev.dLdm += mp.dLdm;
+		//mp_prev.dLdm += mp.dLdm;
 	}
 }

@@ -24,12 +24,24 @@
     <ClCompile Include="MXImGuiTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MPMPointCloudVisualization.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialPointImGui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MPMPolyscope.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MXImGuiTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MPMPointCloudVisualization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialPointImGui.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

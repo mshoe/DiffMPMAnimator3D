@@ -6,6 +6,8 @@
 
 #include "MXImGuiTools.h"
 
+#include <filesystem>
+
 bool LoadMPMPointCloudFromObj(
     std::string obj_path,
     std::shared_ptr<PointCloud>& mpm_point_cloud,
@@ -61,9 +63,30 @@ bool LoadScene(const OptInput& opt_input,
 {
     double point_dx = opt_input.grid_dx / (double)opt_input.points_per_cell_cuberoot;
 
-    
-    if (!LoadMPMPointCloudFromObj(opt_input.mpm_input_mesh_path, mpm_point_cloud, point_dx, opt_input.p_density, opt_input.lam, opt_input.mu))
+    std::filesystem::path fs_input_path(opt_input.mpm_input_mesh_path);
+
+    if (fs_input_path.extension() == ".obj") {
+        if (!LoadMPMPointCloudFromObj(opt_input.mpm_input_mesh_path, mpm_point_cloud, point_dx, opt_input.p_density, opt_input.lam, opt_input.mu))
+            return false;
+
+    }
+    else if (fs_input_path.extension() == ".mpm")
+    {
+        // TODO: will this properply assign the dereferenced shared pointer?
+        mpm_point_cloud = std::make_shared<PointCloud>();
+        if (!mpm_point_cloud->ReadEntirePointCloudFromFile(opt_input.mpm_input_mesh_path))
+            return false;
+    }
+    else if (fs_input_path.extension() == ".mpmbin")
+    {
+        mpm_point_cloud = std::make_shared<PointCloud>();
+        if (!mpm_point_cloud->ReadEntirePointCloudFromBinaryFile(opt_input.mpm_input_mesh_path))
+            return false;
+    }
+    else {
+        std::cout << "invalid input path extension" << std::endl;
         return false;
+    }
     
 
 
@@ -71,13 +94,16 @@ bool LoadScene(const OptInput& opt_input,
     std::cout << "generating mpm grid..." << std::endl;
     int grid_dims[3];
     for (int i = 0; i < 3; i++) {
+        // todo: change [0] to [i]
         grid_dims[i] = (int)std::ceil((opt_input.grid_max_point[0] - opt_input.grid_min_point[0]) / opt_input.grid_dx);
     } 
     mpm_grid = std::make_shared<Grid>(grid_dims[0], grid_dims[1], grid_dims[2], opt_input.grid_dx, opt_input.grid_min_point);
 
 
-    // calculate volume
-    SingleThreadMPM::CalculatePointCloudVolumes(*mpm_point_cloud, *mpm_grid);
+    if (fs_input_path.extension() == ".obj") {
+        // calculate volume
+        SingleThreadMPM::CalculatePointCloudVolumes(*mpm_point_cloud, *mpm_grid);
+    }
 
     // Polyscope point cloud
     std::cout << "registering point cloud..." << std::endl;
@@ -119,7 +145,7 @@ bool LoadCompGraph(
         return false;
 
     // calculate volume
-    SingleThreadMPM::CalculatePointCloudVolumes(*target_point_cloud, *grid);
+    SingleThreadMPM::CalculatePointCloudVolumes(*target_point_cloud, *grid); // Is this needed? We don't use the target point cloud volumes since we dont simulate it
 
     // Polyscope point cloud for target point cloud
     std::cout << "registering point cloud..." << std::endl;
