@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="DiffMPMAnimator3D.cpp" />
     <ClCompile Include="MPMPolyscope.cpp" />
+    <ClCompile Include="MXImGuiTools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\build\deps\glad\src\glad.vcxproj">
@@ -159,6 +160,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MPMPolyscope.h" />
+    <ClInclude Include="MXImGuiTools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

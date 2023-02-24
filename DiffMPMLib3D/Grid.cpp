@@ -184,3 +184,16 @@ void DiffMPMLib3D::Grid::ResetGradients()
 		}
 	}
 }
+
+void DiffMPMLib3D::Grid::ResetValues()
+{
+	for (int i = 0; i < dim_x; i++) {
+		for (int j = 0; j < dim_y; j++) {
+			for (int k = 0; k < dim_z; k++) {
+				nodes[i][j][k].m = 0.0;
+				nodes[i][j][k].v.setZero();
+				nodes[i][j][k].p.setZero();
+			}
+		}
+	}
+}

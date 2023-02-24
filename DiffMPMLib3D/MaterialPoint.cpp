@@ -48,5 +48,7 @@ void DiffMPMLib3D::MaterialPoint::ReadEntirePointFromFile(std::ifstream& ifs)
     ifs >> lam;
     ifs >> mu;
     ifs >> dFc(0, 0) >> dFc(0, 1) >> dFc(0, 2) >> dFc(1, 0) >> dFc(1, 1) >> dFc(1, 2) >> dFc(2, 0) >> dFc(2, 1) >> dFc(2, 2);
+    ifs >> dLdx(0) >> dLdx(1) >> dLdx(2);
+    ifs >> dLdv(0) >> dLdv(1) >> dLdv(2);
     ifs >> dLdF(0, 0) >> dLdF(0, 1) >> dLdF(0, 2) >> dLdF(1, 0) >> dLdF(1, 1) >> dLdF(1, 2) >> dLdF(2, 0) >> dLdF(2, 1) >> dLdF(2, 2);
 }

@@ -48,6 +48,7 @@ compile_commands.json
 /DiffMPMLib3D/x64
 
 # output
+*.mpm
 *.png
 *.mp4
 /PointCloudMesher/x64/Release

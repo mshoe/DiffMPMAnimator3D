@@ -56,6 +56,17 @@ DiffMPMLib3D::Tensor3x3x3x3 DiffMPMLib3D::d_JFit_dF_FD(const Mat3& F)
     return ret;
 }
 
+double DiffMPMLib3D::FixedCorotatedElasticity(const Mat3& F, double lam, double mu)
+{
+    Mat3 U, V;
+    Vec3 S;
+    JIXIE::singularValueDecomposition(F, U, S, V);
+
+    double svd_sum = (S[0] - 1.0)*(S[0] - 1.0) + (S[1] - 1.0)*(S[1] - 1.0) + (S[2] - 1.0)*(S[2] - 1.0);
+    double J = F.determinant();
+    return mu * svd_sum + 0.5 * lam * (J - 1.0) * (J - 1.0);
+}
+
 DiffMPMLib3D::Mat3 DiffMPMLib3D::PK_FixedCorotatedElasticity(const Mat3& F, double lam, double mu)
 {
     Mat3 R, S;

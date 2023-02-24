@@ -117,15 +117,7 @@ void DiffMPMLib3D::SingleThreadMPM::P_op_1(PointCloud& curr_point_cloud)
 
 void DiffMPMLib3D::SingleThreadMPM::G_Reset(Grid& grid)
 {
-	for (int i = 0; i < grid.dim_x; i++) {
-		for (int j = 0; j < grid.dim_y; j++) {
-			for (int k = 0; k < grid.dim_z; k++) {
-				grid.nodes[i][j][k].m = 0.0;
-				grid.nodes[i][j][k].v.setZero();
-				grid.nodes[i][j][k].p.setZero();
-			}
-		}
-	}
+	grid.ResetValues();
 }
 
 void DiffMPMLib3D::SingleThreadMPM::P2G(const PointCloud& curr_point_cloud, Grid& grid, double dt, double drag)

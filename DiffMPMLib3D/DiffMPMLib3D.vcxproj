@@ -153,6 +153,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BackPropagation.h" />
+    <ClInclude Include="cereal_eigen.h" />
     <ClInclude Include="CompGraph.h" />
     <ClInclude Include="Elasticity.h" />
     <ClInclude Include="ForwardSimulation.h" />

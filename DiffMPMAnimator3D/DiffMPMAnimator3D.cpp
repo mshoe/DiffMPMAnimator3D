@@ -19,6 +19,9 @@
 #include "Elasticity.h"
 using namespace DiffMPMLib3D;
 
+#include "cereal/archives/json.hpp"
+#include "MXImGuiTools.h"
+
 unsigned GetNumberOfDigits(unsigned i)
 {
     return i > 0 ? (int)log10((double)i) + 1 : 1;
@@ -35,13 +38,21 @@ std::string LeadingZerosNumberStr(int number, int num_digits_of_string)
     return ret;
 }
 
-SceneInput scene_input;
+// GLOBAL VARS
+OptInput opt_input;
 
 // FOR REAL TIME
 std::shared_ptr<PointCloud> mpm_point_cloud = nullptr;
 std::shared_ptr<Grid> mpm_grid = nullptr;
 polyscope::PointCloud* ps_point_cloud = nullptr;
 polyscope::PointCloud* ps_grid = nullptr;
+
+// FOR OPTIMIZATION
+polyscope::PointCloud* ps_target_point_cloud = nullptr;
+std::shared_ptr<CompGraph> comp_graph = nullptr;
+
+// FOR POST-PROCESSING VISUALIZATION
+
 
 void RealTimeMPMImGUI() 
 {
@@ -60,7 +71,7 @@ void RealTimeMPMImGUI()
         ImGui::BeginDisabled();
     if (ImGui::Button("Load Scene"))
     {
-        LoadScene(scene_input, mpm_point_cloud, mpm_grid, &ps_point_cloud, &ps_grid);
+        LoadScene(opt_input, mpm_point_cloud, mpm_grid, &ps_point_cloud, &ps_grid);
         proxy_grids.clear();
         proxy_grids.resize(num_threads);
         for (int i = 0; i < num_threads; i++) {
@@ -77,19 +88,19 @@ void RealTimeMPMImGUI()
         return;
     }
 
-    static double& gravity = scene_input.f_ext[2];
+    static double& gravity = opt_input.f_ext[2];
     ImGui::InputDouble("gravity", &gravity);
 
     static bool multi_threaded = false;
     ImGui::Checkbox("multithreaded", &multi_threaded);
     if (ImGui::Button("timestep")) {
         if (!multi_threaded) {
-            SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+            SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, opt_input.dt, opt_input.drag, opt_input.f_ext);
         }
         else {
-            MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, scene_input.dt, scene_input.drag, scene_input.f_ext);
+            MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, opt_input.dt, opt_input.drag, opt_input.f_ext);
         }
-        time += scene_input.dt;
+        time += opt_input.dt;
 
         auto point_positions = mpm_point_cloud->GetPointPositions();
         ps_point_cloud->updatePointPositions(point_positions);
@@ -108,12 +119,12 @@ void RealTimeMPMImGUI()
         auto begin_clock = std::chrono::steady_clock::now();
         for (size_t i = 0; i < num_timesteps; i++) {
             if (!multi_threaded) {
-                SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+                SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, opt_input.dt, opt_input.drag, opt_input.f_ext);
             }
             else {
-                MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, scene_input.dt, scene_input.drag, scene_input.f_ext);
+                MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, opt_input.dt, opt_input.drag, opt_input.f_ext);
             }
-            time += scene_input.dt;
+            time += opt_input.dt;
         }
         auto end_clock = std::chrono::steady_clock::now();
         std::cout << "Compute took " << std::chrono::duration_cast<std::chrono::milliseconds>(end_clock - begin_clock).count() << " milliseconds." << std::endl;
@@ -143,12 +154,12 @@ void RealTimeMPMImGUI()
     ImGui::Checkbox("playing", &playing);
     if (playing) {
         if (!multi_threaded) {
-            SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, scene_input.dt, scene_input.drag, scene_input.f_ext);
+            SingleThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, opt_input.dt, opt_input.drag, opt_input.f_ext);
         }
         else {
-            MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, scene_input.dt, scene_input.drag, scene_input.f_ext);
+            MultiThreadMPM::ForwardTimeStep(*mpm_point_cloud, *mpm_point_cloud, *mpm_grid, proxy_grids, opt_input.dt, opt_input.drag, opt_input.f_ext);
         }
-        time += scene_input.dt;
+        time += opt_input.dt;
 
         
         auto point_positions = mpm_point_cloud->GetPointPositions();
@@ -240,11 +251,207 @@ void CheckGradients()
     }
 }
 
-// FOR OPTIMIZATION
-polyscope::PointCloud* ps_target_point_cloud = nullptr;
-std::shared_ptr<CompGraph> comp_graph = nullptr;
 
-void optimizationCallback()
+void Optimization()
+{
+    static int layer = 0;
+
+    if (ImGui::TreeNode("Optimization Setup"))
+    {
+        if (ImGui::Button("Load Optimization Input from JSON"))
+        {
+            std::ifstream ifs;
+            ifs.open("optimization_input_test.json");
+
+            if (ifs.good()) {
+                cereal::JSONInputArchive iarchive(ifs); // Create an input archive
+
+                iarchive(opt_input); // Read the data from the archive
+                ifs.close();
+            }
+            else {
+                std::cout << "couldn't open input json" << std::endl;
+            }
+        }
+
+        if (ImGui::Button("Save Optimization Input from JSON"))
+        {
+            std::ofstream ofs;
+            ofs.open("optimization_input_test.json");
+
+            if (ofs.good()) {
+                cereal::JSONOutputArchive oarchive(ofs); // Create an output archive
+
+                oarchive(opt_input); // Write the data to the archive
+            } // archive goes out of scope, ensuring all contents are flushed
+            ofs.close();
+        }
+
+        opt_input.ImGui();
+
+        if (ImGui::Button("Construct computation graph from optimization input"))
+        {
+            LoadCompGraph(opt_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
+        }
+        ImGui::TreePop();
+    }
+
+
+    if (!comp_graph)
+        ImGui::BeginDisabled();
+
+
+    // Might need to do some checks to make sure stuff is loaded before button is pressed
+    if (ImGui::TreeNode("Advanced Visualization"))
+    {
+        if (ImGui::Button("Add Target Grid Masses to Grid Visualization"))
+        {
+            auto target_grid_masses = comp_graph->target_grid->GetNodeMasses();
+            ps_grid->addScalarQuantity("target grid masses", target_grid_masses);
+
+        }
+        if (ImGui::Button("Add control point elastic energies to visualization"))
+        {
+            auto elastic_energies = comp_graph->layers[layer].point_cloud->GetPointElasticEnergies();
+            ps_point_cloud->addScalarQuantity("elastic energies", elastic_energies);
+        }
+
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Test Buttons"))
+    {
+        if (ImGui::Button("Test binary point cloud file writing"))
+        {
+            comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToBinaryFile("test_binary.mpm");
+            comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToFile("test_text.mpm");
+        }
+        ImGui::TreePop();
+    }
+
+
+    static int point_index = 0;
+    ImGui::InputInt("point index", &point_index);
+    if (ImGui::Button("Remove point")) {
+        comp_graph->layers.begin()->point_cloud->RemovePoint(point_index);
+        auto point_positions = comp_graph->layers.begin()->point_cloud->GetPointPositions();
+
+        ps_point_cloud->updatePointPositions(point_positions);
+        ps_point_cloud->refresh();
+    }
+
+
+    if (ImGui::Button("Set initial deformation gradients"))
+    {
+
+        auto mpm_pc = comp_graph->layers.front().point_cloud;
+        for (size_t i = 0; i < mpm_pc->points.size(); i++) {
+            // ROTATION MATRIX
+            double a = 45.0 * 0.0174533;
+            Mat3 F;
+            F << 1, 0, 0, 0, cos(a), -sin(a), 0, sin(a), cos(a);
+
+            //Mat3 F;
+            //F.setIdentity();
+            F *= 0.8;
+            mpm_pc->points[i].F = F;
+        }
+    }
+
+    static double young_mod = 400.0;
+    ImGui::InputDouble("Young's Modulus", &young_mod);
+    static double poisson = 0.49;
+    ImGui::InputDouble("Poisson's Ratio", &poisson);
+    if (ImGui::Button("Calculate Lame Parameters"))
+    {
+        double lam, mu;
+        CalculateLameParameters(young_mod, poisson, lam, mu);
+        std::cout << "lam = " << lam << ", mu = " << mu << std::endl;
+        auto mpm_pc = comp_graph->layers.front().point_cloud;
+        for (size_t i = 0; i < mpm_pc->points.size(); i++) {
+            mpm_pc->points[i].lam = lam;
+            mpm_pc->points[i].mu = mu;
+        }
+    }
+
+    if (ImGui::Button("Finite Differences test dLdF"))
+    {
+        comp_graph->FiniteDifferencesGradientTest(opt_input.num_timesteps, 0);
+    }
+
+    if (ImGui::Button("Optimize Control Sequence"))
+    {
+        auto begin_clock = std::chrono::steady_clock::now();
+        for (int i = 0; i < opt_input.num_animations; i++)
+        {
+            auto curr_begin_clock = std::chrono::steady_clock::now();
+            std::cout << "**********OPTIMIZING ANIMATION INTERVAL: " << i << "************" << std::endl;
+            comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
+            comp_graph->layers.resize(1);
+
+
+            comp_graph->OptimizeDefGradControlSequence(
+                opt_input.num_timesteps,
+                opt_input.dt,
+                opt_input.drag,
+                opt_input.f_ext,
+                opt_input.control_stride,
+                opt_input.max_gd_iters,
+                opt_input.max_ls_iters,
+                opt_input.initial_alpha,
+                opt_input.gd_tol
+            );
+
+            // RENDER
+            for (size_t t = 0; t < comp_graph->layers.size(); t++)
+            {
+                std::string mpm_output_folder = "output\\";
+                std::string number_str = LeadingZerosNumberStr(i * opt_input.num_timesteps + t, 6);
+
+                auto point_positions = comp_graph->layers[t].point_cloud->GetPointPositions();
+                ps_point_cloud->updatePointPositions(point_positions);
+
+                // VISUALIZE ELASTIC ENERGIES
+                auto elastic_energies = comp_graph->layers[t].point_cloud->GetPointElasticEnergies();
+                ps_point_cloud->addScalarQuantity("elastic energies", elastic_energies);
+
+
+                std::string png_output_path = mpm_output_folder + "screenshot_" + number_str + ".png";
+                polyscope::screenshot(png_output_path, false);
+
+                // SAVE POINT DATA TO FILE
+                std::string mpm_output_path = mpm_output_folder + "mpm_points_" + number_str + ".mpm";
+                comp_graph->layers[t].point_cloud->WriteEntirePointCloudToFile(mpm_output_path);
+            }
+
+            auto curr_end_clock = std::chrono::steady_clock::now();
+            std::cout << "Animation interval " << i << " took " << std::chrono::duration_cast<std::chrono::seconds>(curr_end_clock - curr_begin_clock).count() << " seconds." << std::endl;
+            std::cout << "Full animation took " << std::chrono::duration_cast<std::chrono::seconds>(curr_end_clock - begin_clock).count() << " seconds so far." << std::endl;
+
+        }
+    }
+
+
+
+
+    if (ImGui::InputInt("layer", &layer) && comp_graph) {
+        if (layer >= (int)comp_graph->layers.size())
+            layer = (int)comp_graph->layers.size() - 1;
+        if (layer < 0)
+            layer = 0;
+
+        auto point_positions = comp_graph->layers[layer].point_cloud->GetPointPositions();
+        ps_point_cloud->updatePointPositions(point_positions);
+    }
+
+
+
+
+    if (!comp_graph)
+        ImGui::EndDisabled();
+}
+
+void menuCallback()
 {
     ImGui::PushItemWidth(100);
 
@@ -261,156 +468,54 @@ void optimizationCallback()
     }
 
     if (ImGui::TreeNode("Optimization"))
-
     {
-        static int num_animations = 40;
-        static int num_timesteps = 30;
-        static int control_stride = 10;
-        static int max_gd_iters = 25;
-        static int max_ls_iters = 15;
-        static double initial_alpha = 0.1;
-        static double gd_tol = 1e-3;
-        ImGui::InputDouble("dt", &scene_input.dt);
-        ImGui::InputInt("number of episodes", &num_animations);
-        ImGui::InputInt("number of timesteps per episode", &num_timesteps);
-        std::string total_time_str = "Animation duration = " + std::to_string(scene_input.dt * num_timesteps * num_animations) + " seconds";
-        ImGui::Text(total_time_str.c_str());
-
-
-        ImGui::InputInt("control stride", &control_stride);
-        std::string control_freq_str = "Control frequency = " + std::to_string(1.0 / ((double)control_stride * scene_input.dt)) + " Hz";
-        ImGui::Text(control_freq_str.c_str());
-        ImGui::InputInt("max gradient descent iterations (per control timestep)", &max_gd_iters);
-        ImGui::InputInt("max line search iterations (per gradient descent iteration)", &max_ls_iters);
-        ImGui::InputDouble("Initial line search step size", &initial_alpha);
-        ImGui::InputDouble("Gradient convergence tolerance factor", &gd_tol);
-
-        if (ImGui::Button("Load computation graph"))
-        {
-            LoadCompGraph(scene_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
-        }
-
-        if (!comp_graph)
-            ImGui::BeginDisabled();
-
-        static int point_index = 0;
-        ImGui::InputInt("point index", &point_index);
-        if (ImGui::Button("Remove point")) {
-            comp_graph->layers.begin()->point_cloud->RemovePoint(point_index);
-            auto point_positions = comp_graph->layers.begin()->point_cloud->GetPointPositions();
-            
-            ps_point_cloud->updatePointPositions(point_positions);
-            ps_point_cloud->refresh();
-        }
-
-
-        if (ImGui::Button("Set initial deformation gradients"))
-        {
-
-            auto mpm_pc = comp_graph->layers.front().point_cloud;
-            for (size_t i = 0; i < mpm_pc->points.size(); i++) {
-                // ROTATION MATRIX
-                double a = 45.0 * 0.0174533;
-                Mat3 F;
-                F << 1, 0, 0, 0, cos(a), -sin(a), 0, sin(a), cos(a);
-
-                //Mat3 F;
-                //F.setIdentity();
-                F *= 0.8;
-                mpm_pc->points[i].F = F;
-            }
-        }
-
-        static double young_mod = 400.0;
-        ImGui::InputDouble("Young's Modulus", &young_mod);
-        static double poisson = 0.49;
-        ImGui::InputDouble("Poisson's Ratio", &poisson);
-        if (ImGui::Button("Calculate Lame Parameters"))
-        {
-            double lam, mu;
-            CalculateLameParameters(young_mod, poisson, lam, mu);
-            std::cout << "lam = " << lam << ", mu = " << mu << std::endl;
-            auto mpm_pc = comp_graph->layers.front().point_cloud;
-            for (size_t i = 0; i < mpm_pc->points.size(); i++) {
-                mpm_pc->points[i].lam = lam;
-                mpm_pc->points[i].mu = mu;
-            }
-        }
-
-        if (ImGui::Button("Finite Differences test dLdF"))
-        {
-            comp_graph->FiniteDifferencesGradientTest(num_timesteps, 0);
-        }
-
-        if (ImGui::Button("Optimize Control Sequence"))
-        {
-            auto begin_clock = std::chrono::steady_clock::now();
-            for (int i = 0; i < num_animations; i++)
-            {
-                auto curr_begin_clock = std::chrono::steady_clock::now();
-                std::cout << "**********OPTIMIZING ANIMATION INTERVAL: " << i << "************" << std::endl;
-                comp_graph->layers.front().point_cloud = comp_graph->layers.back().point_cloud;
-                comp_graph->layers.resize(1);
-
-
-                comp_graph->OptimizeDefGradControlSequence(
-                    num_timesteps,
-                    scene_input.dt,
-                    scene_input.drag,
-                    scene_input.f_ext,
-                    control_stride,
-                    max_gd_iters,
-                    max_ls_iters,
-                    initial_alpha,
-                    gd_tol
-                );
-
-                // RENDER
-                for (size_t t = 0; t < comp_graph->layers.size(); t++)
-                {
-                    std::string mpm_output_folder = "output\\";
-                    std::string number_str = LeadingZerosNumberStr(i * num_timesteps + t, 6);
-
-                    auto point_positions = comp_graph->layers[t].point_cloud->GetPointPositions();
-                    ps_point_cloud->updatePointPositions(point_positions);
-
-
-                    std::string png_output_path = mpm_output_folder + "screenshot_" + number_str + ".png";
-                    polyscope::screenshot(png_output_path, false);
-
-                    // SAVE POINT DATA TO FILE
-                    std::string mpm_output_path = mpm_output_folder + "mpm_points_" + number_str + ".mpm";
-                    comp_graph->layers[t].point_cloud->WriteEntirePointCloudToFile(mpm_output_path);
-                }
-
-                auto curr_end_clock = std::chrono::steady_clock::now();
-                std::cout << "Animation interval " << i << " took " << std::chrono::duration_cast<std::chrono::seconds>(curr_end_clock - curr_begin_clock).count() << " seconds." << std::endl;
-                std::cout << "Full animation took " << std::chrono::duration_cast<std::chrono::seconds>(curr_end_clock - begin_clock).count() << " seconds so far." << std::endl;
-
-            }
-        }
-
-
-
-        static int layer = 0;
-        if (ImGui::InputInt("layer", &layer) && comp_graph) {
-            if (layer >= (int)comp_graph->layers.size())
-                layer = (int)comp_graph->layers.size() - 1;
-            if (layer < 0)
-                layer = 0;
-
-            auto point_positions = comp_graph->layers[layer].point_cloud->GetPointPositions();
-            ps_point_cloud->updatePointPositions(point_positions);
-        }
-
-        
-
-
-        if (!comp_graph)
-            ImGui::EndDisabled();
-
+        Optimization();
         ImGui::TreePop();
     }
+
+    if (ImGui::TreeNode("Visualization/Animation"))
+    {
+        ImGui::PushItemWidth(300);
+
+        if (ImGui::Button("Visualize Grid"))
+        {
+            // MPM Grid
+            std::cout << "generating mpm grid..." << std::endl;
+            int grid_dims[3];
+            for (int i = 0; i < 3; i++) {
+                grid_dims[i] = (int)std::ceil((opt_input.grid_max_point[0] - opt_input.grid_min_point[0]) / opt_input.grid_dx);
+            }
+            mpm_grid = std::make_shared<Grid>(grid_dims[0], grid_dims[1], grid_dims[2], opt_input.grid_dx, opt_input.grid_min_point);
+            // grid nodes
+            auto grid_points = mpm_grid->GetNodePositions();
+            ps_grid = polyscope::registerPointCloud(PS_SIM_GRID, grid_points);
+            ps_grid->setPointRadius(mpm_grid->dx / 500.0);
+            ps_grid->setPointRenderMode(polyscope::PointRenderMode::Sphere);
+        }
+
+
+        static std::string pc_data_folder = "experiments/big_sca_demo/output_bob_to_spot/"; //mpm_points_000000.mpm
+        ImGui::InputText("Point cloud data folder", &pc_data_folder);
+
+        static std::string pc_file = "mpm_points_000000.mpm";
+        ImGui::InputText("Point cloud file", &pc_file);
+
+        if (ImGui::Button("Load point cloud"))
+        {
+            mpm_point_cloud = std::make_shared<PointCloud>();
+            mpm_point_cloud->ReadEntirePointCloudFromFile(pc_data_folder + pc_file);
+            auto positions = mpm_point_cloud->GetPointPositions();
+            ps_point_cloud = polyscope::registerPointCloud(PS_POINT_CLOUD_1, positions);
+            double point_dx = opt_input.grid_dx / (double)opt_input.points_per_cell_cuberoot;
+            ps_point_cloud->setPointRadius(point_dx / 50.0);
+            ps_point_cloud->setPointRenderMode(polyscope::PointRenderMode::Sphere);
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::TreePop();
+    }
+
+    
 
     ImGui::PopItemWidth();
 }
@@ -430,7 +535,7 @@ int main()
     
 
     // Specify the callback
-    polyscope::state::userCallback = optimizationCallback;
+    polyscope::state::userCallback = menuCallback;
     //polyscope::state::userCallback = realtimeCallback;
 
     // Pass control flow to polyscope, displaying the interactive window.

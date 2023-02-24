@@ -43,8 +43,8 @@ namespace DiffMPMLib3D {
 
 		std::vector<CompGraphLayer> layers;
 
-	private:
 		std::shared_ptr<const Grid> target_grid;
+	private:
 		Vec3 f_ext = Vec3::Zero();
 		double dt = 1.0 / 120.0;
 		double drag = 0.5;

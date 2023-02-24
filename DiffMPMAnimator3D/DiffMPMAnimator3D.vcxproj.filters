@@ -21,9 +21,15 @@
     <ClCompile Include="MPMPolyscope.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MXImGuiTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MPMPolyscope.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MXImGuiTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

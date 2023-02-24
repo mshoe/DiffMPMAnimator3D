@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "PointCloud.h"
+#include "Elasticity.h"
 #include <fstream>
 
 void DiffMPMLib3D::PointCloud::ResetGradients()
@@ -116,6 +117,19 @@ void DiffMPMLib3D::PointCloud::ReadEntirePointCloudFromFile(std::string file_pat
 	ifs.close();
 }
 
+void DiffMPMLib3D::PointCloud::WriteEntirePointCloudToBinaryFile(std::string file_path)
+{
+	std::ofstream ofs;
+	ofs.open(file_path, std::ios::binary);
+
+	if (ofs.good()) {
+		cereal::BinaryOutputArchive oarchive(ofs); // Create an output archive
+
+		oarchive(*this);
+	}
+	ofs.close();
+}
+
 
 std::vector<DiffMPMLib3D::Vec3> DiffMPMLib3D::PointCloud::GetPointPositions() const
 {
@@ -125,6 +139,19 @@ std::vector<DiffMPMLib3D::Vec3> DiffMPMLib3D::PointCloud::GetPointPositions() co
 	for (size_t p = 0; p < points.size(); p++)
 	{
 		ret[p] = points[p].x;
+	}
+
+	return ret;
+}
+
+std::vector<double> DiffMPMLib3D::PointCloud::GetPointElasticEnergies() const
+{
+	std::vector<double> ret;
+	ret.resize(points.size());
+
+	for (size_t p = 0; p < points.size(); p++)
+	{
+		ret[p] = FixedCorotatedElasticity(points[p].F, points[p].lam, points[p].mu);
 	}
 
 	return ret;

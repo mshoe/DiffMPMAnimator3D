@@ -22,6 +22,7 @@ namespace DiffMPMLib3D {
 		void GetMassSDF(Eigen::MatrixXd& GV, Eigen::VectorXd& Gf) const;
 
 		void ResetGradients();
+		void ResetValues();
 
 		int dim_x;
 		int dim_y;

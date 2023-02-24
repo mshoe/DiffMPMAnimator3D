@@ -3,6 +3,9 @@
 
 #include "MaterialPoint.h"
 
+#include "cereal/archives/binary.hpp"
+#include "cereal/types/vector.hpp"
+
 namespace DiffMPMLib3D {
 	struct PointCloud
 	{
@@ -15,8 +18,18 @@ namespace DiffMPMLib3D {
 		void WriteMassVelocityDefgradsToFile(std::string file_path);
 		void WriteEntirePointCloudToFile(std::string file_path);
 		void ReadEntirePointCloudFromFile(std::string file_path);
+		void WriteEntirePointCloudToBinaryFile(std::string file_path);
 
 		std::vector<Vec3> GetPointPositions() const;
+		std::vector<double> GetPointElasticEnergies() const;
 		std::vector<MaterialPoint> points;
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(
+				CEREAL_NVP(points)
+			);
+		}
 	};
 }

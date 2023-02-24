@@ -1,6 +1,9 @@
 #pragma once
 #include "pch.h"
 #include <fstream>
+#include "cereal/archives/binary.hpp"
+#include "cereal_eigen.h"
+
 namespace DiffMPMLib3D {
 	struct MaterialPoint
 	{
@@ -24,9 +27,6 @@ namespace DiffMPMLib3D {
 		// control variable
 		Mat3 dFc = Mat3::Zero(); // How much to change deformation gradient in this timestep
 
-
-
-
 		// gradients
 		Vec3 dLdx = Vec3::Zero();
 		Vec3 dLdv = Vec3::Zero();
@@ -39,5 +39,26 @@ namespace DiffMPMLib3D {
 
 		double dLdm = 0.0;
 		double dLdvol = 0.0;
+
+		template<class Archive>
+		void serialize(Archive& archive)
+		{
+			archive(
+				CEREAL_NVP(x),
+				CEREAL_NVP(v),
+				CEREAL_NVP(F),
+				CEREAL_NVP(C),
+				CEREAL_NVP(P),
+				CEREAL_NVP(m),
+				CEREAL_NVP(vol),
+				CEREAL_NVP(lam),
+				CEREAL_NVP(mu),
+				CEREAL_NVP(dFc),
+				CEREAL_NVP(dLdx),
+				CEREAL_NVP(dLdv),
+				CEREAL_NVP(dLdF)
+				// other stuff i doubt i would care about?
+			);
+		}
 	};
 }
