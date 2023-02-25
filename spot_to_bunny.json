@@ -1,6 +1,6 @@
 {
     "value0": {
-        "mpm_input_mesh_path": "experiments\\big_sca_demo\\input\\bob_to_spot_000809.mpm",
+        "mpm_input_mesh_path": "experiments\\big_sca_demo\\input\\bob_to_spot_000809.mpmbin",
         "mpm_target_mesh_path": "experiments\\big_sca_demo\\input\\bunny.obj",
         "grid_dx": 1.0,
         "points_per_cell_cuberoot": 2,

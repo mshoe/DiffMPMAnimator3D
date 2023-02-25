@@ -81,47 +81,47 @@ void DiffMPMLib3D::PointCloud::WriteMassVelocityDefgradsToFile(std::string file_
 	ofs.close();
 }
 
-void DiffMPMLib3D::PointCloud::WriteEntirePointCloudToFile(std::string file_path)
-{
-	// not sure how much I want to invest into this codebase in the future, so just doing the easy thing here
-	std::ofstream ofs;
-	ofs.open(file_path);
-
-	if (ofs.good()) {
-		// first line: number of points
-		ofs.precision(17);
-		ofs << points.size() << std::endl;
-		for (size_t v = 0; v < points.size(); v++) {
-			points[v].WriteEntirePointToFile(ofs);
-		}
-	}
-	ofs.close();
-}
-
-bool DiffMPMLib3D::PointCloud::ReadEntirePointCloudFromFile(std::string file_path)
-{
-	std::ifstream ifs;
-	ifs.open(file_path);
-
-	if (ifs.good()) {
-		// first line: number of points
-		size_t num_points;
-		ifs >> num_points;
-
-		points.resize(num_points);
-
-		for (size_t v = 0; v < num_points; v++) {
-			points[v].ReadEntirePointFromFile(ifs);
-		}
-
-		ifs.close();
-		return true;
-	}
-	else {
-		std::cout << "couldn't read file: " << file_path << std::endl;
-		return false;
-	}
-}
+//void DiffMPMLib3D::PointCloud::WriteEntirePointCloudToFile(std::string file_path)
+//{
+//	// not sure how much I want to invest into this codebase in the future, so just doing the easy thing here
+//	std::ofstream ofs;
+//	ofs.open(file_path);
+//
+//	if (ofs.good()) {
+//		// first line: number of points
+//		ofs.precision(17);
+//		ofs << points.size() << std::endl;
+//		for (size_t v = 0; v < points.size(); v++) {
+//			points[v].WriteEntirePointToFile(ofs);
+//		}
+//	}
+//	ofs.close();
+//}
+//
+//bool DiffMPMLib3D::PointCloud::ReadEntirePointCloudFromFile(std::string file_path)
+//{
+//	std::ifstream ifs;
+//	ifs.open(file_path);
+//
+//	if (ifs.good()) {
+//		// first line: number of points
+//		size_t num_points;
+//		ifs >> num_points;
+//
+//		points.resize(num_points);
+//
+//		for (size_t v = 0; v < num_points; v++) {
+//			points[v].ReadEntirePointFromFile(ifs);
+//		}
+//
+//		ifs.close();
+//		return true;
+//	}
+//	else {
+//		std::cout << "couldn't read file: " << file_path << std::endl;
+//		return false;
+//	}
+//}
 
 void DiffMPMLib3D::PointCloud::WriteEntirePointCloudToBinaryFile(std::string file_path)
 {

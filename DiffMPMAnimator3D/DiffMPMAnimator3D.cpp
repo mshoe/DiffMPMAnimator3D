@@ -11,6 +11,7 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <filesystem>
 
 // DiffMPMLib3D
 #include "MPMPolyscope.h"
@@ -309,7 +310,7 @@ void Optimization()
         if (ImGui::Button("Test point cloud file writing and reading"))
         {
             comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToBinaryFile("test_binary.mpmbin");
-            comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToFile("test_text.mpm");
+            //comp_graph->layers[layer].point_cloud->WriteEntirePointCloudToFile("test_text.mpm");
 
 
             auto mpm_pc_read_from_binary = std::make_shared<PointCloud>();
@@ -319,11 +320,11 @@ void Optimization()
                 std::cout << "binary writing/reading successful" << std::endl;
             }
 
-            auto mpm_pc_read_from_text = std::make_shared<PointCloud>();
+            /*auto mpm_pc_read_from_text = std::make_shared<PointCloud>();
             mpm_pc_read_from_text->ReadEntirePointCloudFromFile("test_text.mpm");
             if (comp_graph->layers[layer].point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_text)) {
                 std::cout << "text writing/reading successful" << std::endl;
-            }
+            }*/
 
         }
 
@@ -495,8 +496,8 @@ void Optimization()
                 polyscope::screenshot(png_output_path, false);
 
                 // SAVE POINT DATA TO FILE
-                std::string mpm_output_path = mpm_output_folder + "mpm_points_" + number_str + ".mpm";
-                comp_graph->layers[t].point_cloud->WriteEntirePointCloudToFile(mpm_output_path);
+                std::string mpm_output_path = mpm_output_folder + "points_" + number_str + ".mpmbin";
+                comp_graph->layers[t].point_cloud->WriteEntirePointCloudToBinaryFile(mpm_output_path);
             }
 
             auto curr_end_clock = std::chrono::steady_clock::now();
@@ -568,17 +569,25 @@ void menuCallback()
             ps_grid->setPointRenderMode(polyscope::PointRenderMode::Sphere);
         }
 
+        static std::vector<std::string> pc_data_folder_paths = {
+            "experiments/big_sca_demo/output_bob_to_spot/",
+            "experiments/big_sca_demo/output_spot_to_bunny/"
+        };
 
-        static std::string pc_data_folder = "experiments/big_sca_demo/output_bob_to_spot/"; //mpm_points_000000.mpm
-        ImGui::InputText("Point cloud data folder", &pc_data_folder);
+        for (size_t i = 0; i < pc_data_folder_paths.size(); i++) {
+            std::string input_text_str = "Point cloud folder " + i;
+            ImGui::InputText(input_text_str.c_str(), &pc_data_folder_paths[i]);
+        }
 
-        static std::string pc_file = "mpm_points_000000.mpm";
+        static std::string pc_file = "points_000000.mpmbin";
         ImGui::InputText("Point cloud file", &pc_file);
 
-        if (ImGui::Button("Load point cloud"))
+        if (ImGui::Button("Load point cloud from binary file"))
         {
             mpm_point_cloud = std::make_shared<PointCloud>();
-            if (mpm_point_cloud->ReadEntirePointCloudFromFile(pc_data_folder + pc_file))
+
+            std::string pc_data_folder = pc_data_folder_paths[0];
+            if (mpm_point_cloud->ReadEntirePointCloudFromBinaryFile(pc_data_folder + pc_file))
             {
                 auto positions = mpm_point_cloud->GetPointPositions();
                 ps_point_cloud = polyscope::registerPointCloud(PS_POINT_CLOUD_1, positions);
@@ -594,7 +603,9 @@ void menuCallback()
             }
         }
 
-        static std::string ss_folder = "experiments/big_sca_demo/output_bob_to_spot/screenshots/";
+        
+
+        static std::string ss_folder = "experiments/big_sca_demo/screenshots/";
         ImGui::InputText("Animation Screenshots Folder", &ss_folder);
 
         static int num_frames = 1200;
@@ -602,16 +613,39 @@ void menuCallback()
 
         if (ImGui::Button("Get screenshots of animation"))
         {
+            int screenshot_num = 0;
+            for (size_t j = 0; j < pc_data_folder_paths.size(); j++) {
+                std::string pc_data_folder = pc_data_folder_paths[j];
+                for (size_t i = 0; i < num_frames; i++, screenshot_num++) {
+                    std::string mpm_path = pc_data_folder + "points_" + LeadingZerosNumberStr(i, 6) + ".mpmbin";
+                    std::string ss_path = ss_folder + "screenshot_" + LeadingZerosNumberStr(screenshot_num, 6) + ".png";
+
+                    if (mpm_point_cloud->ReadEntirePointCloudFromBinaryFile(mpm_path))
+                    {
+                        UpdatePolyscopePointCloudProperties(&ps_point_cloud, mpm_point_cloud);
+
+                        polyscope::screenshot(ss_path, false);
+                        std::cout << "screenshotted: " << ss_path << std::endl;
+                    }
+                    else {
+                        std::cout << "no mpm data for file: " << mpm_path << std::endl;
+                        std::cout << "moving onto next folder" << std::endl;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (ImGui::Button("Rename files"))
+        {
             for (size_t i = 0; i < num_frames; i++) {
-                std::string mpm_path = pc_data_folder + "mpm_points_" + LeadingZerosNumberStr(i, 6) + ".mpm";
-                std::string ss_path = ss_folder + "screenshot_pointcloud_" + LeadingZerosNumberStr(i, 6) + ".png";
+                std::string mpm_path = pc_data_folder_paths[1] + "mpm_points_" + LeadingZerosNumberStr(i, 6) + ".mpmbin";
 
-                if (mpm_point_cloud->ReadEntirePointCloudFromFile(mpm_path))
+                if (std::filesystem::exists(mpm_path))
                 {
-                    UpdatePolyscopePointCloudProperties(&ps_point_cloud, mpm_point_cloud);
-
-                    polyscope::screenshot(ss_path, false);
-                    std::cout << "screenshotted: " << ss_path << std::endl;
+                    std::string new_mpm_path = pc_data_folder_paths[1] + "points_" + LeadingZerosNumberStr(i, 6) + ".mpmbin";
+                    std::filesystem::rename(mpm_path, new_mpm_path);
+                    std::cout << "renamed " << mpm_path << " to " << new_mpm_path << std::endl;
                 }
                 else {
                     std::cout << " no mpm data for file: " << mpm_path << std::endl;
@@ -619,6 +653,25 @@ void menuCallback()
                 }
             }
         }
+
+        /*if (ImGui::Button("Convert text mpm files to binary files"))
+        {
+            for (size_t i = 0; i < num_frames; i++) {
+                std::string mpm_path = pc_data_folder + "mpm_points_" + LeadingZerosNumberStr(i, 6) + ".mpm";
+
+                if (mpm_point_cloud->ReadEntirePointCloudFromFile(mpm_path))
+                {
+                    std::string mpm_binary_path = pc_data_folder + "points_" + LeadingZerosNumberStr(i, 6) + ".mpmbin";
+                    mpm_point_cloud->WriteEntirePointCloudToBinaryFile(mpm_binary_path);
+                    std::cout << "wrote " << mpm_binary_path << std::endl;
+                }
+                else {
+                    std::cout << " no mpm data for file: " << mpm_path << std::endl;
+                    break;
+                }
+            }
+
+        }*/
         
 
         ImGui::PopItemWidth();

@@ -70,13 +70,13 @@ bool LoadScene(const OptInput& opt_input,
             return false;
 
     }
-    else if (fs_input_path.extension() == ".mpm")
-    {
-        // TODO: will this properply assign the dereferenced shared pointer?
-        mpm_point_cloud = std::make_shared<PointCloud>();
-        if (!mpm_point_cloud->ReadEntirePointCloudFromFile(opt_input.mpm_input_mesh_path))
-            return false;
-    }
+    //else if (fs_input_path.extension() == ".mpm")
+    //{
+    //    // TODO: will this properply assign the dereferenced shared pointer?
+    //    mpm_point_cloud = std::make_shared<PointCloud>();
+    //    if (!mpm_point_cloud->ReadEntirePointCloudFromFile(opt_input.mpm_input_mesh_path))
+    //        return false;
+    //}
     else if (fs_input_path.extension() == ".mpmbin")
     {
         mpm_point_cloud = std::make_shared<PointCloud>();

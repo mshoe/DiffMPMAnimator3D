@@ -16,8 +16,8 @@ namespace DiffMPMLib3D {
 
 		void WriteToOBJ(std::string obj_path); // just writes vertex positions
 		void WriteMassVelocityDefgradsToFile(std::string file_path);
-		void WriteEntirePointCloudToFile(std::string file_path);
-		bool ReadEntirePointCloudFromFile(std::string file_path);
+		/*void WriteEntirePointCloudToFile(std::string file_path);
+		bool ReadEntirePointCloudFromFile(std::string file_path);*/
 		void WriteEntirePointCloudToBinaryFile(std::string file_path);
 		bool ReadEntirePointCloudFromBinaryFile(std::string file_path);
 
