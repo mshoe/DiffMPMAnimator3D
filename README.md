@@ -1,4 +1,4 @@
-This software is for animating physically simulated elastoplastic amorphous objects. It uses polyscope (https://polyscope.run/) for visualization and GUI.
+This software is for animating physically simulated elastoplastic amorphous objects. It was written by Michael Xu, and was used for our upcoming poster at Symposium of Computer Animation 2023. It uses polyscope (https://polyscope.run/) for visualization and GUI.
 
 ![gif](bob-to-spot.gif)
 
