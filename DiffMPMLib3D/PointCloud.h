@@ -14,6 +14,7 @@ namespace DiffMPMLib3D {
 		void Descend_dLdF(double alpha, double gradient_norm);
 		void RemovePoint(size_t point_index);
 
+		bool ReadFromOBJ(std::string obj_path, double point_mass);
 		void WriteToOBJ(std::string obj_path); // just writes vertex positions
 		void WriteMassVelocityDefgradsToFile(std::string file_path);
 		/*void WriteEntirePointCloudToFile(std::string file_path);
@@ -29,6 +30,7 @@ namespace DiffMPMLib3D {
 		std::vector<Mat3> GetPointDefGrads() const;
 		std::vector<double> GetPointDeterminants() const;
 		std::vector<double> GetPointElasticEnergies() const;
+
 		std::vector<MaterialPoint> points;
 
 		template<class Archive>

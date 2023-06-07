@@ -102,6 +102,8 @@ void DiffMPMLib3D::SingleThreadMPM::ForwardTimeStep(PointCloud& next_point_cloud
 	G_Reset(grid);
 	P2G(curr_point_cloud, grid, dt, drag);
 	G_op(grid, dt, f_ext);
+	//G_op(grid, dt, Vec3::Zero(), 0.5); // trying out a weak gravity force pulling objects to the origin
+	//G_op(grid, dt, Vec3::Zero(), 0.0);
 	G2P(next_point_cloud, curr_point_cloud, grid);
 	P_op_2(next_point_cloud, curr_point_cloud, dt);
 }
@@ -136,6 +138,27 @@ void DiffMPMLib3D::SingleThreadMPM::G_op(Grid& grid, double dt, Vec3 f_ext)
 			for (size_t k = 0; k < grid.dim_z; k++) {
 				GridNode& node = grid.nodes[i][j][k];
 
+				SingleNode_op(node, dt, f_ext);
+			}
+		}
+	}
+}
+
+void DiffMPMLib3D::SingleThreadMPM::G_op(Grid& grid, double dt, Vec3 gravity_point, double gravity_mag)
+{
+	for (size_t i = 0; i < grid.dim_x; i++) {
+		for (size_t j = 0; j < grid.dim_y; j++) {
+			for (size_t k = 0; k < grid.dim_z; k++) {
+				GridNode& node = grid.nodes[i][j][k];
+
+				Vec3 f_ext = gravity_point - node.x;
+				if (f_ext.isZero()) {
+					f_ext.setZero();
+				}
+				else {
+					f_ext.normalize();
+					f_ext *= gravity_mag;
+				}
 				SingleNode_op(node, dt, f_ext);
 			}
 		}

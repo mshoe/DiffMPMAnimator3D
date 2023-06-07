@@ -166,6 +166,7 @@
     <ClInclude Include="MultiThreadForwardSimulation.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PointCloud.h" />
+    <ClInclude Include="SphereUnionSurfacing.h" />
     <ClInclude Include="Tensor3x3x3x3.h" />
   </ItemGroup>
   <ItemGroup>
@@ -185,6 +186,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PointCloud.cpp" />
+    <ClCompile Include="SphereUnionSurfacing.cpp" />
     <ClCompile Include="Tensor3x3x3x3.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

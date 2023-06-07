@@ -34,6 +34,37 @@ void DiffMPMLib3D::PointCloud::RemovePoint(size_t point_index)
 	points.erase(points.begin()+point_index);
 }
 
+bool DiffMPMLib3D::PointCloud::ReadFromOBJ(std::string obj_path, double point_mass)
+{
+	// only material parameter assigned will be mass, since we only use this for rendering data (not simulation)
+
+	points.resize(0);
+
+
+	std::ifstream ifs;
+	ifs.open(obj_path);
+	if (ifs.good()) {
+		std::string junk;
+		double x, y, z;
+
+		while (ifs >> junk >> x >> y >> z)
+		{
+			Eigen::Vector3d pos(x, y, z);
+			MaterialPoint point;
+			point.x = pos;
+			point.m = point_mass;
+			points.push_back(point);
+		}
+		ifs.close();
+		return true;
+	}
+	else {
+		std::cout << "couldn't open file: " << obj_path << std::endl;
+		ifs.close();
+		return false;
+	}
+}
+
 void DiffMPMLib3D::PointCloud::WriteToOBJ(std::string obj_path)
 {
 	std::ofstream ofs;

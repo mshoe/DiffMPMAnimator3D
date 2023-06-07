@@ -50,6 +50,7 @@ namespace DiffMPMLib3D {
 		void P2G(const PointCloud& curr_point_cloud, Grid& grid, double dt, double drag);
 
 		void G_op(Grid& grid, double dt, Vec3 f_ext);
+		void G_op(Grid& grid, double dt, Vec3 gravity_point, double gravity_mag);
 
 		void G2P(PointCloud& next_point_cloud, const PointCloud& curr_point_cloud, Grid& grid);
 

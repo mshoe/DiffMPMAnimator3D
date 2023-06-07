@@ -2,9 +2,20 @@
 
 ./ffmpeg.exe -framerate 60 -i output/screenshot_%06d.png polyscope_output.mp4
 
+./ffmpeg.exe -framerate 60 -i MCscreenshots/screenshot_%06d.png polyscope_output.mp4
 
 ../../ffmpeg.exe -framerate 60 -i meshes/screenshot_pointcloud_%06d.png polyscope_output2.mp4
 
 ./ffmpeg.exe -framerate 60 -i experiments/big_sca_demo/output_bob_to_spot/screenshots/screenshot_pointcloud_%06d.png polyscope_output.mp4
 
 ./ffmpeg.exe -framerate 60 -i experiments/big_sca_demo/output_spot_to_bunny/screenshot_%06d.png polyscope_output.mp4
+
+./ffmpeg.exe -framerate 60 -i experiments/big_sca_demo/screenshots/screenshot_%06d.png polyscope_output.mp4
+
+
+./ffmpeg.exe -framerate 60 -i experiments/SCA/sphere_to_A/screenshots/screenshot_%06d.png polyscope_output.mp4
+
+./ffmpeg.exe -framerate 60 -i experiments/SCA/falling_ball_to_S_1_output/screenshots/screenshot_%06d.png polyscope_output.mp4
+
+./ffmpeg.exe -framerate 60 -i "experiments/004 sphere to bunny/screenshots/mc_screenshot_%06d.png" polyscope_output.mp4
+./ffmpeg.exe -framerate 60 -i "experiments/004 sphere to bunny/screenshots/points_screenshots_%06d.png" polyscope_output.mp4

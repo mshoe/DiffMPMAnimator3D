@@ -63,6 +63,9 @@
     <ClInclude Include="cereal_eigen.h">
       <Filter>mpm</Filter>
     </ClInclude>
+    <ClInclude Include="SphereUnionSurfacing.h">
+      <Filter>mpm</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -99,6 +102,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MultiThreadForwardSimulation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SphereUnionSurfacing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

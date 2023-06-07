@@ -4,8 +4,10 @@
 #include <iostream>
 #include "polyscope/polyscope.h"
 #include "polyscope/point_cloud.h"
+#include "polyscope/surface_mesh.h"
 
-
+#include "igl/marching_cubes.h"
+#include "igl/per_vertex_normals.h"
 
 // C++ includes
 #include <iostream>
@@ -18,6 +20,7 @@
 #include "ForwardSimulation.h"
 #include "MultiThreadForwardSimulation.h"
 #include "Elasticity.h"
+#include "SphereUnionSurfacing.h"
 using namespace DiffMPMLib3D;
 
 #include "cereal/archives/json.hpp"
@@ -421,51 +424,6 @@ void Optimization()
 
             comp_graph->layers.resize(1);
 
-            // TEST CODE (was used to catch a very nasty bug when loading mpm data)
-            //{
-            //    comp_graph->layers.back().point_cloud->WriteEntirePointCloudToBinaryFile("test_binary.mpmbin");
-            //    comp_graph->layers.back().point_cloud->WriteEntirePointCloudToFile("test_text.mpm");
-
-
-            //    auto mpm_pc_read_from_binary = std::make_shared<PointCloud>();
-            //    mpm_pc_read_from_binary->ReadEntirePointCloudFromBinaryFile("test_binary.mpmbin");
-
-            //    if (comp_graph->layers.back().point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_binary)) {
-            //        std::cout << "binary writing/reading successful" << std::endl;
-            //    }
-
-            //    auto mpm_pc_read_from_text = std::make_shared<PointCloud>();
-            //    mpm_pc_read_from_text->ReadEntirePointCloudFromFile("test_text.mpm");
-            //    if (comp_graph->layers.back().point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_text)) {
-            //        std::cout << "text writing/reading successful" << std::endl;
-            //        std::cout << "setting first layer point cloud to point cloud read from text" << std::endl;
-            //        comp_graph->layers.front().point_cloud = mpm_pc_read_from_text;
-
-            //        /*std::cout << "reloading comp_graph using point cloud text data" << std::endl;
-            //        opt_input.mpm_input_mesh_path = "test_text.mpm";
-            //        LoadCompGraph(opt_input, comp_graph, &ps_point_cloud, &ps_target_point_cloud, &ps_grid);
-
-            //        if (comp_graph->layers.front().point_cloud->IsEqualToOtherPointCloud(*mpm_pc_read_from_text))
-            //        {
-            //            std::cout << "point cloud is still the same" << std::endl;
-            //        }*/
-            //    }
-            //    else {
-            //        std::cout << "error reading point cloud from text" << std::endl;
-            //        break;
-            //    }
-
-            //    std::cout << "reseting grid values (even though it shouldn't matter since this should already be handled later?)" << std::endl;
-            //    comp_graph->layers.front().grid->ResetValues();
-            //    comp_graph->layers.front().grid->ResetGradients();
-
-            //    std::cout << "reseting point cloud gradients (even though it shouldn't matter since this should already be handled later?)" << std::endl;
-            //    comp_graph->layers.front().point_cloud->ResetGradients();
-
-            //    
-            //}
-
-
             comp_graph->OptimizeDefGradControlSequence(
                 opt_input.num_timesteps,
                 opt_input.dt,
@@ -527,6 +485,35 @@ void Optimization()
         ImGui::EndDisabled();
 }
 
+void MarchingCubesPointCloud(const std::vector<Vec3>& _points, double iso_mass, double grid_dx, double quality, Vec3 grid_min_point, Vec3 grid_max_point,
+    Eigen::MatrixXd& mcV, Eigen::MatrixXi& mcF)
+{
+    std::cout << "generating marching cubes surface..." << std::endl;
+    auto begin_clock = std::chrono::steady_clock::now();
+    int grid_dims[3];
+    for (int i = 0; i < 3; i++) {
+        grid_dims[i] = std::ceil((grid_max_point[0] - grid_min_point[0]) / grid_dx);
+    }
+    auto mpm_grid = std::make_shared<Grid>(grid_dims[0], grid_dims[1], grid_dims[2], grid_dx, grid_min_point);
+
+    SingleThreadMPM::P2G_Mass(_points, *mpm_grid, 1.0);
+
+    auto high_res_mpm_grid = std::make_shared<Grid>(grid_dims[0] * quality, grid_dims[1] * quality, grid_dims[2] * quality, grid_dx / quality, grid_min_point);
+
+    SingleThreadMPM::G2G_Mass(*mpm_grid, *high_res_mpm_grid);
+
+
+
+    Eigen::MatrixXd GV; // location of each grid node
+    Eigen::VectorXd Gf;
+    high_res_mpm_grid->GetMassSDF(GV, Gf);
+
+    igl::marching_cubes(Gf, GV, high_res_mpm_grid->dim_x, high_res_mpm_grid->dim_y, high_res_mpm_grid->dim_z, iso_mass, mcV, mcF);
+
+    auto end_clock = std::chrono::steady_clock::now();
+    std::cout << "Finished generating marching cubes surface in " << std::chrono::duration_cast<std::chrono::seconds>(end_clock - begin_clock).count() << std::endl;
+}
+
 void menuCallback()
 {
     ImGui::PushItemWidth(100);
@@ -569,10 +556,29 @@ void menuCallback()
             ps_grid->setPointRenderMode(polyscope::PointRenderMode::Sphere);
         }
 
+        static double min_val = 0.0;
+        static double max_val = 40.0;
+        ImGui::InputDouble("Min scalar quantity val", &min_val);
+        ImGui::InputDouble("Max scalar quantity val", &max_val);
+
+        
         static std::vector<std::string> pc_data_folder_paths = {
-            "experiments/big_sca_demo/output_bob_to_spot/",
-            "experiments/big_sca_demo/output_spot_to_bunny/"
+            "experiments/SCA/sphere_to_S/",
+            "experiments/SCA/sphere_to_C2/",
+            "experiments/SCA/sphere_to_A/"
+            /*"experiments/big_sca_demo/output_bob_to_spot/",
+            "experiments/big_sca_demo/output_spot_to_bunny_2/"*/
         };
+
+        static std::string ss_folder = "MCscreenshots/";
+
+        if (ImGui::Button("Add Folder Path"))
+        {
+            pc_data_folder_paths.push_back("");
+        }
+        if (ImGui::Button("Remove Folder Path")) {
+            pc_data_folder_paths.resize(pc_data_folder_paths.size() - 1);
+        }
 
         for (size_t i = 0; i < pc_data_folder_paths.size(); i++) {
             std::string input_text_str = "Point cloud folder " + i;
@@ -582,30 +588,87 @@ void menuCallback()
         static std::string pc_file = "points_000000.mpmbin";
         ImGui::InputText("Point cloud file", &pc_file);
 
-        if (ImGui::Button("Load point cloud from binary file"))
+        if (ImGui::Button("Load point cloud from file (.mpmbin, .obj)"))
         {
             mpm_point_cloud = std::make_shared<PointCloud>();
 
             std::string pc_data_folder = pc_data_folder_paths[0];
-            if (mpm_point_cloud->ReadEntirePointCloudFromBinaryFile(pc_data_folder + pc_file))
-            {
+            std::string pc_file_path = pc_data_folder + pc_file;
+            bool load_success = false;
+            if (std::filesystem::path(pc_file_path).extension() == ".mpmbin") {
+                std::cout << "found .mpmbin extension." << std::endl;
+                load_success = mpm_point_cloud->ReadEntirePointCloudFromBinaryFile(pc_file_path);
+            }
+            else if (std::filesystem::path(pc_file_path).extension() == ".obj") {
+                double point_dx = opt_input.grid_dx / (double)opt_input.points_per_cell_cuberoot;
+                double point_mass = opt_input.p_density * point_dx * point_dx * point_dx;
+                std::cout << "found .obj extension." << std::endl;
+                load_success = mpm_point_cloud->ReadFromOBJ(pc_file_path, point_mass);
+            }
+
+
+            if (load_success) {
                 auto positions = mpm_point_cloud->GetPointPositions();
                 ps_point_cloud = polyscope::registerPointCloud(PS_POINT_CLOUD_1, positions);
                 double point_dx = opt_input.grid_dx / (double)opt_input.points_per_cell_cuberoot;
                 ps_point_cloud->setPointRadius(point_dx / 50.0);
                 ps_point_cloud->setPointRenderMode(polyscope::PointRenderMode::Sphere);
+            }
+            else {
+                std::cout << "loading points failed" << std::endl;
+            }
+        }
 
-                UpdatePolyscopePointCloudProperties(&ps_point_cloud, mpm_point_cloud);
 
-                // Set specific properties
-                //ps_point_cloud->updatePointPositions(positions);
-                
+        
+
+        static std::vector<polyscope::PointCloud*> ps_point_clouds;
+        static std::vector<std::shared_ptr<DiffMPMLib3D::PointCloud>> mpm_point_clouds;
+
+        if (ImGui::Button("Load point cloudS from binary fileS"))
+        {
+            mpm_point_clouds.resize(pc_data_folder_paths.size());
+            for (size_t i = 0; i < pc_data_folder_paths.size(); i++) {
+                mpm_point_clouds[i] = std::make_shared<PointCloud>();
+
+                std::string pc_data_folder = pc_data_folder_paths[i];
+                if (mpm_point_clouds[i]->ReadEntirePointCloudFromBinaryFile(pc_data_folder + pc_file))
+                {
+                    auto positions = mpm_point_clouds[i]->GetPointPositions();
+                    std::string ps_point_cloud_name = "Point_Cloud_" + std::to_string(i);
+                    ps_point_clouds.push_back(polyscope::registerPointCloud(ps_point_cloud_name, positions));
+                    double point_dx = opt_input.grid_dx / (double)opt_input.points_per_cell_cuberoot;
+                    ps_point_clouds.back()->setPointRadius(point_dx / 50.0);
+                    ps_point_clouds.back()->setPointRenderMode(polyscope::PointRenderMode::Sphere);
+
+                    //UpdatePolyscopePointCloudMassField(&ps_point_clouds.back(), mpm_point_cloud, mpm_grid, min_val, max_val);
+
+                    // Set specific properties
+                    //ps_point_cloud->updatePointPositions(positions);
+
+                }
             }
         }
 
         
+        for (size_t i = 0; i < ps_point_clouds.size(); i++) {
+            std::string invec3_label = "COM of point cloud " + std::to_string(i);
+            glm::vec3 curr_posf = ps_point_clouds[i]->getPosition();
+            DiffMPMLib3D::Vec3 curr_pos;
+            curr_pos.x() = curr_posf.x;
+            curr_pos.y() = curr_posf.y;
+            curr_pos.z() = curr_posf.z;
+            if (ImGui::InputVec3(invec3_label.c_str(), curr_pos)) {
+                glm::vec3 curr_posf2;
+                curr_posf2.x = curr_pos.x();
+                curr_posf2.y = curr_pos.y();
+                curr_posf2.z = curr_pos.z();
+                ps_point_clouds[i]->setPosition(curr_posf2);
+            }
+        }
+        
 
-        static std::string ss_folder = "experiments/big_sca_demo/screenshots/";
+        
         ImGui::InputText("Animation Screenshots Folder", &ss_folder);
 
         static int num_frames = 1200;
@@ -613,6 +676,8 @@ void menuCallback()
 
         if (ImGui::Button("Get screenshots of animation"))
         {
+            auto begin_clock = std::chrono::steady_clock::now();
+            
             int screenshot_num = 0;
             for (size_t j = 0; j < pc_data_folder_paths.size(); j++) {
                 std::string pc_data_folder = pc_data_folder_paths[j];
@@ -622,7 +687,7 @@ void menuCallback()
 
                     if (mpm_point_cloud->ReadEntirePointCloudFromBinaryFile(mpm_path))
                     {
-                        UpdatePolyscopePointCloudProperties(&ps_point_cloud, mpm_point_cloud);
+                        UpdatePolyscopePointCloudMassField(&ps_point_cloud, mpm_point_cloud, mpm_grid, min_val, max_val);
 
                         polyscope::screenshot(ss_path, false);
                         std::cout << "screenshotted: " << ss_path << std::endl;
@@ -634,6 +699,9 @@ void menuCallback()
                     }
                 }
             }
+
+            auto end_clock = std::chrono::steady_clock::now();
+            std::cout << "Rendering to files took " << std::chrono::duration_cast<std::chrono::seconds>(end_clock - begin_clock).count() << " seconds." << std::endl;
         }
 
         if (ImGui::Button("Rename files"))
@@ -654,6 +722,196 @@ void menuCallback()
             }
         }
 
+        if (mpm_point_cloud && ImGui::Button("Print Point Cloud points to obj"))
+        {
+            mpm_point_cloud->WriteToOBJ("test.obj");
+        }
+
+
+        static polyscope::SurfaceMesh* ps_surface_mesh = nullptr;
+        static polyscope::SurfaceMesh* ps_surface_mesh_sphere_unions = nullptr;
+        static double iso_mass = 0.5;
+        static double grid_dx = 1.0;
+        ImGui::InputDouble("iso mass", &iso_mass);
+        ImGui::InputDouble("grid dx", &grid_dx);
+        static double quality = 4.0;
+        ImGui::InputDouble("quality", &quality);
+        static double sphere_radius = 0.5;
+        ImGui::InputDouble("sphere radius", &sphere_radius);
+        static int blur_iterations = 2;
+        ImGui::InputInt("blue iterations", &blur_iterations);
+        // TODO: MORE OPTIONS HERE
+        if (mpm_point_cloud && ImGui::Button("Marching Cubes Mesh (MPM GRID SAMPLING)"))
+        {
+            if (ps_surface_mesh != nullptr)
+                polyscope::removeStructure("surface mesh");
+
+            Eigen::MatrixXd mcV;
+            Eigen::MatrixXi mcF;
+            auto points = mpm_point_cloud->GetPointPositions();
+            MarchingCubesPointCloud(points, iso_mass, grid_dx, quality, opt_input.grid_min_point, opt_input.grid_max_point, mcV, mcF);
+
+            ps_surface_mesh = polyscope::registerSurfaceMesh("surface mesh", mcV, mcF);
+            //ps_surface_mesh->addVect
+        }
+
+
+
+        if (mpm_point_cloud && ImGui::Button("Marching Cubes Mesh (SPHERE UNIONS)"))
+        {
+            if (ps_surface_mesh_sphere_unions != nullptr)
+                polyscope::removeStructure("surface mesh (sphere unions)");
+
+            Eigen::MatrixXd mcV;
+            Eigen::MatrixXi mcF;
+            auto points = mpm_point_cloud->GetPointPositions();
+            SphereUnionMarchingCubesSurfaceFromPointCloud(points, sphere_radius, grid_dx / quality, iso_mass, blur_iterations,
+                opt_input.grid_min_point, opt_input.grid_max_point, mcV, mcF);
+
+            ps_surface_mesh_sphere_unions = polyscope::registerSurfaceMesh("surface mesh (sphere unions)", mcV, mcF);
+            //ps_surface_mesh->addVect
+        }
+
+        
+
+        if (ImGui::Button("Get MC screenshots of animation (in sequence)"))
+        {
+            auto begin_clock = std::chrono::steady_clock::now();
+
+            int screenshot_num = 0;
+            for (size_t j = 0; j < pc_data_folder_paths.size(); j++) {
+                std::string pc_data_folder = pc_data_folder_paths[j];
+                for (size_t i = 0; i < num_frames; i++, screenshot_num++) {
+                    std::string mpm_path = pc_data_folder + "points_" + LeadingZerosNumberStr(i, 6) + ".mpmbin";
+                    std::string ss_path = ss_folder + "mc_screenshot_" + LeadingZerosNumberStr(screenshot_num, 6) + ".png";
+                    std::string points_ss_path = ss_folder + "points_screenshots_" + LeadingZerosNumberStr(screenshot_num, 6) + ".png";
+
+                    if (mpm_point_cloud->ReadEntirePointCloudFromBinaryFile(mpm_path))
+                    {
+                        //UpdatePolyscopePointCloudMassField(&ps_point_cloud, mpm_point_cloud, mpm_grid, min_val, max_val);
+
+                        //if (ps_surface_mesh_sphere_unions != nullptr)
+                        //   polyscope::removeStructure("surface mesh (sphere unions)");
+                        ps_surface_mesh_sphere_unions->setEnabled(false);
+                        auto points = mpm_point_cloud->GetPointPositions();
+
+                        ps_point_cloud = polyscope::registerPointCloud(PS_POINT_CLOUD_1, points);
+                        ps_point_cloud->setEnabled(true);
+                        polyscope::screenshot(points_ss_path, false);
+                        std::cout << "screenshotted: " << points_ss_path << std::endl;
+                        ps_point_cloud->setEnabled(false);
+
+                        Eigen::MatrixXd mcV;
+                        Eigen::MatrixXi mcF;
+                        SphereUnionMarchingCubesSurfaceFromPointCloud(points, sphere_radius, grid_dx / quality, iso_mass, blur_iterations,
+                            opt_input.grid_min_point, opt_input.grid_max_point, mcV, mcF);
+
+                        ps_surface_mesh_sphere_unions = polyscope::registerSurfaceMesh("surface mesh (sphere unions)", mcV, mcF);
+                        ps_surface_mesh_sphere_unions->setEnabled(true);
+
+                        polyscope::screenshot(ss_path, false);
+                        std::cout << "screenshotted: " << ss_path << std::endl;
+                    }
+                    else {
+                        std::cout << "no mpm data for file: " << mpm_path << std::endl;
+                        std::cout << "moving onto next folder" << std::endl;
+                        break;
+                    }
+                }
+            }
+
+            auto end_clock = std::chrono::steady_clock::now();
+            std::cout << "Rendering to files took " << std::chrono::duration_cast<std::chrono::seconds>(end_clock - begin_clock).count() << " seconds." << std::endl;
+        }
+
+        /****** FOR RENDERING MULTIPLE MPM CLOUDS IN THE SAME SCENE ******/
+
+        static std::vector<polyscope::SurfaceMesh*> ps_surface_meshes_sphere_unions;
+
+        if (!mpm_point_clouds.empty() && mpm_point_clouds[0] && ImGui::Button("Multiple Marching Cubes Meshes (SPHERE UNIONS)"))
+        {
+            ps_surface_meshes_sphere_unions.resize(mpm_point_clouds.size());
+            for (size_t i = 0; i < mpm_point_clouds.size(); i++) {
+                if (ps_surface_mesh_sphere_unions != nullptr)
+                    polyscope::removeStructure("surface mesh (sphere unions)");
+
+                Eigen::MatrixXd mcV;
+                Eigen::MatrixXi mcF;
+                auto points = mpm_point_clouds[i]->GetPointPositions();
+
+                glm::vec3 curr_posf = ps_point_clouds[i]->getPosition();
+                DiffMPMLib3D::Vec3 curr_pos;
+                curr_pos.x() = curr_posf.x;
+                curr_pos.y() = curr_posf.y;
+                curr_pos.z() = curr_posf.z;
+
+                for (size_t p = 0; p < points.size(); p++) {
+                    points[p] += curr_pos;
+                }
+
+                SphereUnionMarchingCubesSurfaceFromPointCloud(points, sphere_radius, grid_dx / quality, iso_mass, blur_iterations,
+                    opt_input.grid_min_point + curr_pos, opt_input.grid_max_point + curr_pos, mcV, mcF);
+
+                std::string name = "surface mesh (sphere unions) " + std::to_string(i);
+                ps_surface_meshes_sphere_unions[i] = polyscope::registerSurfaceMesh(name, mcV, mcF);
+            }
+            //ps_surface_mesh->addVect
+        }
+
+        if (ImGui::Button("Get MC screenshots of animation (side by side)"))
+        {
+            auto begin_clock = std::chrono::steady_clock::now();
+
+            int screenshot_num = 0;
+            
+            
+            for (size_t i = 0; i < num_frames; i++, screenshot_num++) {
+                for (size_t j = 0; j < pc_data_folder_paths.size(); j++) {
+                    std::string pc_data_folder = pc_data_folder_paths[j];
+                    std::string mpm_path = pc_data_folder + "points_" + LeadingZerosNumberStr(i, 6) + ".mpmbin";
+                    
+
+                    if (mpm_point_clouds[j]->ReadEntirePointCloudFromBinaryFile(mpm_path))
+                    {
+                        //UpdatePolyscopePointCloudMassField(&ps_point_cloud, mpm_point_cloud, mpm_grid, min_val, max_val);
+
+                        //if (ps_surface_mesh_sphere_unions != nullptr)
+                        //   polyscope::removeStructure("surface mesh (sphere unions)");
+
+                        Eigen::MatrixXd mcV;
+                        Eigen::MatrixXi mcF;
+                        auto points = mpm_point_clouds[j]->GetPointPositions();
+                        glm::vec3 curr_posf = ps_point_clouds[j]->getPosition();
+                        DiffMPMLib3D::Vec3 curr_pos;
+                        curr_pos.x() = curr_posf.x;
+                        curr_pos.y() = curr_posf.y;
+                        curr_pos.z() = curr_posf.z;
+
+                        for (size_t p = 0; p < points.size(); p++) {
+                            points[p] += curr_pos;
+                        }
+
+                        SphereUnionMarchingCubesSurfaceFromPointCloud(points, sphere_radius, grid_dx / quality, iso_mass, blur_iterations,
+                            opt_input.grid_min_point + curr_pos, opt_input.grid_max_point + curr_pos, mcV, mcF);
+
+                        std::string name = "surface mesh (sphere unions) " + std::to_string(j);
+                        ps_surface_meshes_sphere_unions[j] = polyscope::registerSurfaceMesh(name, mcV, mcF);
+                        
+                        
+                    }
+                    else {
+                        std::cout << "no mpm data for file: " << mpm_path << std::endl;
+                        break;
+                    }
+                }
+                std::string ss_path = ss_folder + "screenshot_" + LeadingZerosNumberStr(screenshot_num, 6) + ".png";
+                polyscope::screenshot(ss_path, false);
+                std::cout << "screenshotted: " << ss_path << std::endl;
+            }
+
+            auto end_clock = std::chrono::steady_clock::now();
+            std::cout << "Rendering to files took " << std::chrono::duration_cast<std::chrono::seconds>(end_clock - begin_clock).count() << " seconds." << std::endl;
+        }
         /*if (ImGui::Button("Convert text mpm files to binary files"))
         {
             for (size_t i = 0; i < num_frames; i++) {

@@ -10,6 +10,7 @@ using namespace DiffMPMLib3D;
 
 const std::string PS_POINT_CLOUD_1 = "point cloud 1";
 const std::string PS_POINT_CLOUD_2 = "point cloud 2";
+const std::string PS_POINT_CLOUD_3 = "point cloud 3";
 const std::string PS_SIM_GRID = "simulation grid";
 
 struct OptInput
